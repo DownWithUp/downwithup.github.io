@@ -1,0 +1,39 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="./style.css">
+	<link rel="icon" href="./favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Blog</title>
+	</head>
+	<h1>DownWithUp's Blog</h1>
+	<body bgcolor = "#323335">
+		<center>
+			<button onclick="openCVEPosts()">CVE Security Posts</button>
+			<button onclick="openTechPosts()">Technical Posts</button>
+			<button onclick="openGithub()">Github Page</button>
+			<button id="contact"class="contact" onclick="copyEmail()"><span>Contact Email</span></button>
+			<button onclick="fNull()">NULL</button>
+		</center>
+		<input type="text" value="downwithup@protonmail.com" id="hiddenInput" style="position: relative; left: -100000px;">
+	</body>
+	<footer>www.downwithup.github.io</footer>
+	
+	<script>
+	function openCVEPosts() {
+		location.href = "./CVEPosts.html";
+	}
+	function openTechPosts(){
+	}
+	function openGithub(){
+		location.href = "https://www.github.com/DownWithUp";
+	}
+	function copyEmail(){
+		var address = document.getElementById("hiddenInput");
+		address.select();
+		document.execCommand("copy");
+	}
+	function fNull(){
+		return(null);
+	}
+	</script>
+</html>

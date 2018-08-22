@@ -1,0 +1,36 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="./style.css">
+	<link rel="icon" href="./favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Blog</title>
+	</head>
+	<h1>CVE Security Posts</h1>
+	<h4>The information provided in these advisories are as is, and are without any warranty</h4>
+	<body bgcolor = "#323335">
+		<center>
+			<button onclick='showRawText("2018-15499")'>CVE-2018-15499</button>
+			
+			<iframe id="mainIFrame" src="./RawAdvisories/2018-15499.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<button onclick="goBack()">Back</button>
+		</center>
+	</body>
+	<footer>www.downwithup.github.io</footer>	
+	<script>
+		function goBack() {
+			location.href = "./index.html";
+		}
+		function showRawText(CVEId){
+			if(CVEId == "2018-15499") {
+				console.log("match");
+				iframe = document.getElementById("mainIFrame");
+				if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+				
+			}
+		}
+	</script>
+</html>
