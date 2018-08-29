@@ -1,0 +1,36 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="../style.css">
+	<link rel="icon" href="../favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Blog</title>
+	</head>
+	<h1>Spoofing the Windows 10's Task Manager</h1>
+	<h3>3/3/18</h3>
+	<body bgcolor = "#323335">
+		<center>
+      <p>
+        Observant Windows 10 users will notice that some of the new metro apps can only run as a single instance. Examples include Settings and Task Manager. Attempting to open another instance of these processes will result in the already opened one being focused.
+
+	Only being allowed to open a single instance of Task Manager is a real security weakness in Windows. Many people terminate suspected malicious processes with Task Manager.
+
+	Initially I began looking for CreateMutex(Ex) and CreateSemaphore(Ex)both of which return ERROR_ALREADY_EXISTS if the name parameter (created by the process) already exists. Upon debugging a particular call to CreateMutexW passed the wide string with a value: “ Local\\TM.750ce7b0-e5fd-454f-9fad-2f66513dfa1b ” Having another process create a mutex with this same value will result in ERROR_ALREADY_EXISTS inside whatever process calls CreateMutexW second.
+
+	This doesn’t successfully spoof Task Manager, however, as it has more startup checks. After receiving ERROR_ALREADY_EXISTS, Task Manager checks FindWindow for a class “Task Manager” In order to spoof this you need to call CreateWindowEx and pass  lpClassName a pointer to a string: “TaskManagerWindow” Then pass lpWindowName a pointer to a string: “Task Manager”
+
+  Finally, after Task Manager finds the duplicate Window, it will call SendMessageTimeoutW with msg parameter set to: 0x4D3. There is then a compare where rdi is equal to 0x4D3:
+  cmp qword ptr [rsp + 0x48], rdi
+
+	In order for this compare to evaluate to true, you need to specify a place in your WNDPROC (From WNDCLASSEX in CreateWindowEx) for a call to ReplyMessage if wmsg, in your WNDPROC, is equal to 0x4D3. ReplyMessage needs to be called with the same 0x4D3. If Task Manager receives 0x4D3 as a reply, it will go down a series of procedures and terminate itself.
+  <a href="" style="color: #42bcf4; font-size: 16px;">Github PoC Code</a>
+      </p>
+      <hr>
+    	<button onclick="goBack()">Back</button>
+		</center>
+	</body>
+	<script>
+		function goBack() {
+			location.href = "../TechPostsIndex.html";
+		}
+	</script>
+</html>
