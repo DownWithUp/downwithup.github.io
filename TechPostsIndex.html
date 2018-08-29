@@ -1,0 +1,29 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="./style.css">
+	<link rel="icon" href="./favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Blog</title>
+	</head>
+	<h1>Technical Posts</h1>
+	<body bgcolor = "#323335">
+		<center>
+			<button onclick='gotoPost("1");'>Spoofing Windows 10's Task Manager [3/3/18]</button>
+			<button onclick="goBack()">Back</button>
+		</center>
+	</body>
+	<footer>www.downwithup.github.io</footer>
+	<script>
+  function gotoPost(nPost) {
+    console.log("Hello");
+    switch (nPost) {
+      case "1":
+        location.href = "./TechPosts/1.html";
+        break;
+    }
+  }
+		function goBack() {
+			location.href = "./index.html";
+		}
+	</script>
+</html>
