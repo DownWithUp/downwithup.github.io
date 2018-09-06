@@ -8,7 +8,7 @@
 	<h1>Spoofing the Windows 10's Task Manager</h1>
 	<h3>3/3/18</h3>
 	<body bgcolor = "#323335">
-		<center>
+	<center>
       <p>
         Observant Windows 10 users will notice that some of the new metro apps can only run as a single instance. Examples include Settings and Task Manager. Attempting to open another instance of these processes will result in the already opened one being focused.
 
@@ -22,11 +22,11 @@
   cmp qword ptr [rsp + 0x48], rdi
 
 	In order for this compare to evaluate to true, you need to specify a place in your WNDPROC (From WNDCLASSEX in CreateWindowEx) for a call to ReplyMessage if wmsg, in your WNDPROC, is equal to 0x4D3. ReplyMessage needs to be called with the same 0x4D3. If Task Manager receives 0x4D3 as a reply, it will go down a series of procedures and terminate itself.
-  <a href="" style="color: #42bcf4; font-size: 16px;">Github PoC Code</a>
+  <a target="_parent" href="https://github.com/DownWithUp/Spoof-Task-Manager" style="color: #42bcf4; font-size: 16px;">Github PoC Code</a>
       </p>
       <hr>
     	<button onclick="goBack()">Back</button>
-		</center>
+	</center>
 	</body>
 	<script>
 		function goBack() {
