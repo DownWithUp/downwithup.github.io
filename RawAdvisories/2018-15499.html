@@ -7,7 +7,6 @@
 		GEARAspiWDM.sys, version 2.2.5.0 (and possibly lower versions aswell), is vulnerable to a race condition that allows an attack to cause a DoS with low OS privileges. Using IOCTL 0x222004 the driver makes multiple unchecked fetches into userland at a specified address. <br>
 		Security Risk Level: <br>
 		CVSS (v3.0) = 6.7 Medium (personal estimation)<br>
-		CVSS:3.0/AV:L/AC:L/PR:L/UI:R/S:C/C:L/I:N/A:H/E:P/RL:U/CR:L/IR:L/AR:L/MAV:L<br>	
 		Possible Solution(s) / Fixe(s): <br>
 		Add ProbeForRead/ProbeForWrite checks and use METHOD_BUFFERED for IO. <br>
 		Exploit Code / Vulnerable Software Source(s): <br>
