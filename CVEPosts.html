@@ -9,26 +9,53 @@
 	<h4>The information provided in these advisories are without any warranty</h4>
 	<body bgcolor = "#323335">
 		<center>
+			<button onclick='showRawText("2018-16713")'>CVE-2018-16713</button>
+			<iframe id="mainIFrame4" src="./RawAdvisories/2018-16713.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<button onclick='showRawText("2018-16712")'>CVE-2018-16712</button>
+			<iframe id="mainIFrame3" src="./RawAdvisories/2018-16712.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<button onclick='showRawText("2018-16711")'>CVE-2018-16711</button>
+			<iframe id="mainIFrame2" src="./RawAdvisories/2018-16711.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
 			<button onclick='showRawText("2018-15499")'>CVE-2018-15499</button>
-			<iframe id="mainIFrame" src="./RawAdvisories/2018-15499.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<iframe id="mainIFrame1" src="./RawAdvisories/2018-15499.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
 			<button onclick="goBack()">Back</button>
 		</center>
 	</body>
-	<footer>www.downwithup.github.io</footer>
 	<script>
 		function goBack() {
 			location.href = "./index.html";
 		}
 		function showRawText(CVEId){
 			if(CVEId == "2018-15499") {
-				console.log("match");
-				iframe = document.getElementById("mainIFrame");
+				iframe = document.getElementById("mainIFrame1");
 				if(iframe.style.visibility === "hidden") {
 					iframe.setAttribute("style", "visibility: visible;");
 				} else {
 					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
 				}
-
+			}
+			if(CVEId == "2018-16711") {
+			iframe = document.getElementById("mainIFrame2");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-16712") {
+			iframe = document.getElementById("mainIFrame3");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-16713") {
+			iframe = document.getElementById("mainIFrame4");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
 			}
 		}
 	</script>
