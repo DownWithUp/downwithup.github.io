@@ -9,6 +9,8 @@
 	<h4>The information provided in these advisories are without any warranty</h4>
 	<body bgcolor = "#323335">
 		<center>
+			<button onclick='showRawText("2018-18026")'>CVE-2018-18026</button>
+			<iframe id="mainIFrame5" src="./RawAdvisories/2018-18026.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
 			<button onclick='showRawText("2018-16713")'>CVE-2018-16713</button>
 			<iframe id="mainIFrame4" src="./RawAdvisories/2018-16713.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
 			<button onclick='showRawText("2018-16712")'>CVE-2018-16712</button>
@@ -51,6 +53,14 @@
 			}
 			if(CVEId == "2018-16713") {
 			iframe = document.getElementById("mainIFrame4");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-18026") {
+			iframe = document.getElementById("mainIFrame5");
 			if(iframe.style.visibility === "hidden") {
 					iframe.setAttribute("style", "visibility: visible;");
 				} else {
