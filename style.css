@@ -5,6 +5,7 @@ h1 {
 	font-size: 40px;
 	padding-bottom: 10px;
 	cursor: default;
+	font-weight: 100;
 }
 h4 {
 	font-family: "Oxygen", Tahoma;
@@ -13,6 +14,7 @@ h4 {
 	font-size: 20px;
 	padding-bottom: 10px;
 	cursor: default;
+	font-weight: 100;
 }
 h3 {
 	font-family: "Oxygen", Tahoma;
@@ -21,6 +23,7 @@ h3 {
 	font-size: 15px;
 	padding-bottom: 8px;
 	cursor: default;
+	font-weight: 100;
 }
 button {
 	background-color: #323335; #717172;
@@ -35,6 +38,7 @@ button {
 	font-family: "Oxygen", Tahoma;
 	display: block;
 	width: 196px;
+	font-weight: 100;
 }
 button:hover {
 	background-color: #ffffff;
