@@ -9,6 +9,14 @@
 	<h4>The information provided in these advisories are without any warranty</h4>
 	<body bgcolor = "#323335">
 		<center>
+			<button onclick='showRawText("2018-19087")'>CVE-2018-19087</button>
+			<iframe id="mainIFrame10" src="./RawAdvisories/2018-19087.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<button onclick='showRawText("2018-19086")'>CVE-2018-19086</button>
+			<iframe id="mainIFrame9" src="./RawAdvisories/2018-19086.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<button onclick='showRawText("2018-19085")'>CVE-2018-19085</button>
+			<iframe id="mainIFrame8" src="./RawAdvisories/2018-19085.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
+			<button onclick='showRawText("2018-19084")'>CVE-2018-19084</button>
+			<iframe id="mainIFrame7" src="./RawAdvisories/2018-19084.html" style="visibility: hidden; height: 0px; display: none;"></iframe>															
 			<button onclick='showRawText("2018-18714")'>CVE-2018-18714</button>
 			<iframe id="mainIFrame6" src="./RawAdvisories/2018-18714.html" style="visibility: hidden; height: 0px; display: none;"></iframe>
 			<button onclick='showRawText("2018-18026")'>CVE-2018-18026</button>
@@ -71,6 +79,38 @@
 			}
 			if(CVEId == "2018-18714") {
 			iframe = document.getElementById("mainIFrame6");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-19084") {
+			iframe = document.getElementById("mainIFrame7");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-19085") {
+			iframe = document.getElementById("mainIFrame8");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-19086") {
+			iframe = document.getElementById("mainIFrame9");
+			if(iframe.style.visibility === "hidden") {
+					iframe.setAttribute("style", "visibility: visible;");
+				} else {
+					iframe.setAttribute("style", "visibility: hidden; height: 0px; display: none;");
+				}
+			}
+			if(CVEId == "2018-19087") {
+			iframe = document.getElementById("mainIFrame10");
 			if(iframe.style.visibility === "hidden") {
 					iframe.setAttribute("style", "visibility: visible;");
 				} else {
