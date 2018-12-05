@@ -111,10 +111,12 @@ div.display {
 	left: 50%;
 	transform: translate(-50%, 0);
 	bottom: 0px;
-	min-width: 700px;
+	min-width: 100%;
 	border-style: solid;
 	border-color: #ffffff;
 	border-bottom: none;
+	border-left: none;
+	border-right: none;
 	overflow-y: scroll;
 }
 p.p_display {
