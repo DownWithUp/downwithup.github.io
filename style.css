@@ -105,6 +105,11 @@ p {
 	font-size: 14px;
 	color: #ffffff;
 }
+p.rre {
+	position: relative;
+	margin-left: 10%;
+	margin-right: 10%;
+}
 div.display {
 	position: fixed;
 	top: 75%;
@@ -118,6 +123,10 @@ div.display {
 	border-left: none;
 	border-right: none;
 	overflow-y: scroll;
+}
+div.code{
+	margin-left: 10%;
+	margin-right: 10%;
 }
 p.p_display {
 	margin-top: 0px;
