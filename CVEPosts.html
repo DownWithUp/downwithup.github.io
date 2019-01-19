@@ -8,6 +8,9 @@
 	<h1>CVE Security Posts</h1>
 	<h4>The information provided in these advisories are without any warranty</h4>
 	<body bgcolor = "#323335">
+			<button class="CVE" onclick='showRawText("2019-6494")'>CVE-2019-6494</button>
+			<button class="CVE" onclick='showRawText("2019-6493")'>CVE-2019-6493</button>
+			<button class="CVE" onclick='showRawText("2019-6492")'>CVE-2019-6492</button>	
 			<button class="CVE" onclick='showRawText("2018-20404")'>CVE-2018-20404</button>
 			<button class="CVE" onclick='showRawText("2018-19523")'>CVE-2018-19523</button>
 			<button class="CVE" onclick='showRawText("2018-19522")'>CVE-2018-19522</button>
@@ -181,6 +184,42 @@
 			Unable to get past VIA Technologies support page. <br>
 		</p>
 		
+		<p class="p_display" id="p_display14">
+			About CVE-2019-6492: <br>
+			SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC4 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool.
+			Security Risk Level: <br>
+			CVSS (v3.0) = 3.0 Low (personal estimation)<br>
+			Possible Solution(s) / Fixe(s): <br>
+			Free any kerenl pools before functions finish.<br>
+			Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile-2018" style="color: #42bcf4;">Github PoC Link</a><br>
+			Contacting IOBit Software failed. <br>
+		</p>
+		
+		<p class="p_display" id="p_display15">
+			About CVE-2019-6493: <br>
+			SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC0 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool.
+			Security Risk Level: <br>
+			CVSS (v3.0) = 3.0 Low (personal estimation)<br>
+			Possible Solution(s) / Fixe(s): <br>
+			Free any kerenl pools before functions finish.<br>
+			Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile-2018" style="color: #42bcf4;">Github PoC Link</a><br>
+			Contacting IOBit Software failed. <br>
+		</p>
+		
+		<p class="p_display" id="p_display16">
+			About CVE-2019-6494: <br>
+			IMFForceDelete.sys in IObit Malware Fighter 6.2 allows a low privileged user to send IOCTL 0x8016E000 along with a user defined string to a file; that file will be promptly deleted regardless of access controls.
+			Security Risk Level: <br>
+			CVSS (v3.0) = 6.3 Medium (personal estimation)<br>
+			Possible Solution(s) / Fixe(s): <br>
+			Don't allow users to specify any file.<br>
+			Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile-2018" style="color: #42bcf4;">Github PoC Link</a><br>
+			Contacting IOBit Software failed. <br>
+		</p>
+		
 	</div>
 	<script>
 		// JavaScript's asynchronous functions calls give me nightmares!
@@ -191,7 +230,7 @@
 		
 		function clearOutputBox(strDoNot) {
 			strId = "p_display"
-			for(var i =1; i <= 13; i++) { // Max number
+			for(var i =1; i <= 16; i++) { // Max number
 				strTempId = strId + i.toString();
 				if(strTempId != strDoNot) {
 					var e = document.getElementById(strTempId);
@@ -317,6 +356,33 @@
 					e.style = "visibility : visible";
 				}
 				clearOutputBox("p_display13");
+			}
+			if(CVEId == "2019-6492") {
+				e = document.getElementById("p_display14");
+				if(e.getAttribute("style") == "visibility: visible;") {
+					e.style = "visibility : hidden";
+				} else {
+					e.style = "visibility : visible";
+				}
+				clearOutputBox("p_display14");
+			}
+			if(CVEId == "2019-6493") {
+				e = document.getElementById("p_display15");
+				if(e.getAttribute("style") == "visibility: visible;") {
+					e.style = "visibility : hidden";
+				} else {
+					e.style = "visibility : visible";
+				}
+				clearOutputBox("p_display15");
+			}
+			if(CVEId == "2019-6494") {
+				e = document.getElementById("p_display16");
+				if(e.getAttribute("style") == "visibility: visible;") {
+					e.style = "visibility : hidden";
+				} else {
+					e.style = "visibility : visible";
+				}
+				clearOutputBox("p_display16");
 			}
 			
 		}
