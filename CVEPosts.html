@@ -150,7 +150,7 @@
 		
 		<p class="p_display" id="p_display11">
 			About CVE-2018-19522: <br>
-			DriverAgent 2.2015.7.14, which includes DrvAgent64.sys 1.0.0.1, allows a user to send an IOCTL (0x800020F4) with a buffer containing user defined content. The driver's subroutine will execute a wrmsr instruction with the user's buffer for partial input.
+			DriverAgent 2.2015.7.14, which includes DrvAgent64.sys 1.0.0.1, allows a user to send an IOCTL (0x800020F4) with a buffer containing user defined content. The driver's subroutine will execute a wrmsr instruction with the user's buffer for partial input. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 6.7 High (personal estimation)<br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -162,7 +162,7 @@
 		
 		<p class="p_display" id="p_display12">
 			About CVE-2018-19523: <br>
-			DriverAgent 2.2015.7.14, which includes DrvAgent64.sys 1.0.0.1, allows a user to send an IOCTL (0x80002068) with a user defined buffer size. If the size of the buffer is less than 512 bytes, then a bad memset call will overwrite the next pool header if there is one adjacent to the user's buffer pool.
+			DriverAgent 2.2015.7.14, which includes DrvAgent64.sys 1.0.0.1, allows a user to send an IOCTL (0x80002068) with a user defined buffer size. If the size of the buffer is less than 512 bytes, then a bad memset call will overwrite the next pool header if there is one adjacent to the user's buffer pool. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 6.7 High (personal estimation)<br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -174,7 +174,7 @@
 		
 		<p class="p_display" id="p_display13">
 			About CVE-2018-20404: <br>
-			ETK_E900.sys, a SmartETK driver for VIA Technologies EPIA-E900 system board, is vulnerable to denial of service attack via IOCTL 0x9C402048, which calls memmove and constantly fails on an arbitrary (uncontrollable) address, resulting in an eternal hang or a BSoD.
+			ETK_E900.sys, a SmartETK driver for VIA Technologies EPIA-E900 system board, is vulnerable to denial of service attack via IOCTL 0x9C402048, which calls memmove and constantly fails on an arbitrary (uncontrollable) address, resulting in an eternal hang or a BSoD. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 6.7 Medium (personal estimation)<br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -186,7 +186,7 @@
 		
 		<p class="p_display" id="p_display14">
 			About CVE-2019-6492: <br>
-			SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC4 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool.
+			SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC4 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 3.0 Low (personal estimation)<br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -198,7 +198,7 @@
 		
 		<p class="p_display" id="p_display15">
 			About CVE-2019-6493: <br>
-			SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC0 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool.
+			SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC0 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 3.0 Low (personal estimation)<br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -210,7 +210,7 @@
 		
 		<p class="p_display" id="p_display16">
 			About CVE-2019-6494: <br>
-			IMFForceDelete.sys in IObit Malware Fighter 6.2 allows a low privileged user to send IOCTL 0x8016E000 along with a user defined string to a file; that file will be promptly deleted regardless of access controls.
+			IMFForceDelete.sys in IObit Malware Fighter 6.2 allows a low privileged user to send IOCTL 0x8016E000 along with a user defined string to a file; that file will be promptly deleted regardless of access controls. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 6.3 Medium (personal estimation)<br>
 			Possible Solution(s) / Fixe(s): <br>
