@@ -13,6 +13,7 @@
 			<button onclick="openDEKH()">Driver Exploitation Knowledge Hub</button>
 			<button onclick="openRRE()">Random Reverse Engineering</button>
 			<button onclick="openGithub()">Github Page</button>
+			<button onclick="openTwitter()">Twitter</button>
 			<button id="contact"class="contact" onclick="copyEmail()"><span>Contact Email</span></button>
 		</center>
 		<input type="text" value="downwithup@protonmail.com" id="hiddenInput" style="position: relative; left: -100000px;">
@@ -22,16 +23,19 @@
 	function openCVEPosts() {
 		location.href = "./CVEPosts.html";
 	}
-	function openRRE(){
+	function openRRE() {
 		location.href = "./RREIndex.html";
 	}
-	function openGithub(){
+	function openGithub() {
 		window.open('https://github.com/DownWithUp', '_blank');
 	}
-	function openDEKH(){
+	function openTwitter() {
+		window.open('https://twitter.com/DownWithUpSec', '_blank');
+	}
+	function openDEKH() {
 		location.href = "./DEKHIndex.html";
 	}
-	function copyEmail(){
+	function copyEmail() {
 		var address = document.getElementById("hiddenInput");
 		address.select();
 		document.execCommand("copy");
