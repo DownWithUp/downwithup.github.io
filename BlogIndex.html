@@ -1,0 +1,33 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="./style.css">
+	<link rel="icon" href="./favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Github Website</title>
+	</head>
+	<h1>Blog Posts</h1>
+	<h4>Random Ramblings Infrequently Posted</h4>
+	<body bgcolor = "#323335">
+		<center>
+			<button onclick='gotoPost("2");'>The Search For Drivers [12/13/18]</button>
+			<button onclick='gotoPost("1");'>Spoofing Windows 10's Task Manager [3/3/18]</button>
+			<button onclick="goBack()">Back</button>
+		</center>
+	</body>
+	<script>
+	function gotoPost(nPost) {
+		console.log("Hello");
+		switch (nPost) {
+		case "1":
+			location.href = "./Blog/1.html";
+			break;
+		case "2":
+			location.href = "./Blog/2.html";
+			break;
+		}
+	}
+	function goBack() {
+			location.href = "./index.html";
+	}
+	</script>
+</html>
