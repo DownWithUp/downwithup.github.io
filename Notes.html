@@ -1,0 +1,36 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="./style.css">
+	<link rel="icon" href="./favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Github Website</title>
+	</head>
+	<h1>Notepad</h1>
+	<h4>A Collection of Semi-useful Information and Things to Remember</h4>
+	<body bgcolor = "#323335">
+			
+		<p class="notes">
+		<br>
+		A full list of major IRP codes can be found here: <a target="_parent" href="https://gist.github.com/DownWithUp/6df4714afd7ae57d77f48ee1b6268dbb" style="color: #42bcf4; font-size: 14px;">Click Me</a>
+
+		Communication between usermode and filter drivers is possible if the driver calls FltCreateCommunicationPort and specifies a MessageNotifyCallback argument. A user mode program can use FilterConnectCommunicationPort and then FilterSendMessage.	
+		The buffers sent from FilterSendMessage are pre-filtered with ProbeForRead and ProbeForWrite (read for input and write for output) but may be unaligned and are vulnerable to race condition attacks because they reside directly in user mode address space. <a target="_parent" href="https://docs.microsoft.com/en-us/windows-hardware/drivers/ddi/content/fltkernel/nf-fltkernel-fltcreatecommunicationport" style="color: #42bcf4; font-size: 14px;">Source Link</a>
+		
+		</p>		
+		<center>
+		<hr>
+			<button onclick="goBack()">Back</button>
+		</center>
+	</body>
+	<script>
+		function goCommunication(){
+			location.href = "./DEKH/Communication.html"
+		}
+		function holder(){
+			alert("Coming Soon! :)");
+		}
+		function goBack() {
+			location.href = "./index.html";
+		}
+	</script>
+</html>
