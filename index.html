@@ -10,8 +10,8 @@
 	<body bgcolor = "#323335">
 		<center>
 			<button onclick="openCVEPosts()">CVE Security Posts</button>
-			<button onclick="openDEKH()">Driver Exploitation Knowledge Hub</button>
-			<button onclick="openRRE()">Random Reverse Engineering</button>
+			<button onclick="openBlog()">Blog Posts</button>
+			<button onclick="openNotes()">Random Notes</button>
 			<button onclick="openGithub()">Github Page</button>
 			<button onclick="openTwitter()">Twitter</button>
 			<button id="contact"class="contact" onclick="copyEmail()"><span>Contact Email</span></button>
@@ -23,17 +23,17 @@
 	function openCVEPosts() {
 		location.href = "./CVEPosts.html";
 	}
-	function openRRE() {
-		location.href = "./RREIndex.html";
+	function openBlog() {
+		location.href = "./BlogIndex.html";
+	}
+	function openNotes() {
+		location.href = "./Notes.html";
 	}
 	function openGithub() {
 		window.open('https://github.com/DownWithUp', '_blank');
 	}
 	function openTwitter() {
 		window.open('https://twitter.com/DownWithUpSec', '_blank');
-	}
-	function openDEKH() {
-		location.href = "./DEKHIndex.html";
 	}
 	function copyEmail() {
 		var address = document.getElementById("hiddenInput");
