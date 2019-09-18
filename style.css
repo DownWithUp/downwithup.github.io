@@ -129,7 +129,7 @@ div.code{
 	margin-left: 10%;
 	margin-right: 10%;
 }
-p.dekh { 
+p.notes { 
 	position: relative;
 	margin-left: 10%;
 	margin-right: 10;
@@ -146,6 +146,11 @@ p.p_display {
 	max-height: 0px;
 	width: 90%;
 	
+}
+img.blog {
+	display: block;
+	margin-left: auto;
+	margin-right: auto;
 }
 hr {
 	width: 80%;
