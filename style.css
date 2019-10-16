@@ -12,11 +12,13 @@ h2 {
 	color: #ffffff;
 	text-align: left;
 	font-size: 25px;
-	padding-bottom: 8px;
+	padding-bottom: 0;
 	cursor: default;
 	font-weight: 100;
 	margin-left: 10%;
 	margin-right: 10%;
+	margin-top: 8px;
+	margin-bottom: 0;
 }
 h4 {
 	font-family: "Oxygen", Tahoma;
@@ -33,7 +35,7 @@ h3 {
 	color: #ffffff;
 	text-align: center;
 	font-size: 15px;
-	padding-bottom: 8px;
+	padding-bottom: 10px;
 	cursor: default;
 	font-weight: 100;
 }
@@ -116,6 +118,10 @@ p {
 	font-family: "Oxygen", Tahoma;
 	font-size: 14px;
 	color: #ffffff;
+	margin-top: 0;
+	position: relative;
+	margin-left: 10%;
+	margin-right: 10%;
 }
 p.rre {
 	position: relative;
