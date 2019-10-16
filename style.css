@@ -167,3 +167,12 @@ hr {
 	width: 80%;
 	color: #ffffff;
 }
+ul.blog {
+	font-family: "Oxygen", Tahoma;
+	font-size: 14px;
+	color: #ffffff;
+	display: block;
+	margin-left: 10%;
+	margin-right: 10%;
+	list-style-type: square;
+}
