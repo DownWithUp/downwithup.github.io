@@ -17,7 +17,7 @@
 
 	Finally, after Task Manager finds the duplicate Window, it will call SendMessageTimeoutW with msg parameter set to: 0x4D3. The result of SendMessageTimeoutW is then compared to 0x4D3.
 	In order for this compare to evaluate to true, you need to specify a place in your WNDPROC (From WNDCLASSEX in CreateWindowEx) for a call to ReplyMessage if wmsg, in your WNDPROC, is equal to 0x4D3. ReplyMessage needs to be called with the same 0x4D3. If Task Manager receives 0x4D3 as a reply, it will go down a series of procedures and terminate itself.
-  <a target="_parent" href="https://github.com/DownWithUp/Spoof-Task-Manager" style="color: #42bcf4; font-size: 16px;">Github PoC Code</a>
+  <a target="_blank" href="https://github.com/DownWithUp/Spoof-Task-Manager" style="color: #42bcf4; font-size: 16px;">Github PoC Code</a>
       </p>
 	   <img src="./P1-Image1.gif" class="blog">
       <hr>
