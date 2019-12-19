@@ -8,6 +8,8 @@
 	<h1>CVE Security Posts</h1>
 	<h4>The information provided in these advisories are without any warranty</h4>
 	<body bgcolor = "#323335">
+		<div>
+			<button class="CVE" onclick='showRawText("2019-8007")'>CVE-2019-8007</button>
 			<button class="CVE" onclick='showRawText("2019-10617")'>CVE-2019-10617</button>
 			<button class="CVE" onclick='showRawText("2019-6165")'>CVE-2019-6165</button>
 			<button class="CVE" onclick='showRawText("2019-11868")'>CVE-2019-11868</button>
@@ -29,7 +31,7 @@
 			<button class="CVE" onclick='showRawText("2018-16711")'>CVE-2018-16711</button>
 			<button class="CVE" onclick='showRawText("2018-15499")'>CVE-2018-15499</button>
 			<button class="CVE" onclick="goBack()">Back</button>
-
+		</div>
 	</body>
 	<div class="display">
 		<p class="p_display" id="p_display1">
@@ -42,6 +44,7 @@
 			Exploit Code / Vulnerable Software Source(s): 
 			<a target="_parent" href="https://github.com/DownWithUp/CVE-2018-15499" style="color: #42bcf4;">Github PoC Link</a><br>
 			Contacting GEAR software failed. <br>
+			&nbsp;
 		</p>
 		
 		<p class="p_display" id="p_display2">
@@ -249,7 +252,7 @@
 		
 		<p class="p_display" id="p_display19">
 			About CVE-2019-6165: <br>
-			AdminService.exe, included in the driver installer package for Qualcomm Atheros QCA61x4 devices, versions 10.0.10011.16384 (unconfirmed) or older, allows an unprivileged user to specify normally restricted registry keys to create or delete.<br>
+			AdminService.exe, included in the driver installer package for Qualcomm Atheros QCA61x4 devices, versions 10.0.10011.16384 or older, allows an unprivileged user to specify normally restricted registry keys to create or delete.<br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 7.2 High <br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -270,6 +273,18 @@
 			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile-2018" style="color: #42bcf4;">Github PoC Link</a><br>
 			Reported to Lenovo's PSIRT and coordinated public disclosure. Product is being phased out. No patch released. <br>
 		</p>
+		
+		<p class="p_display" id="p_display21">
+			About CVE-2019-8007: <br>
+			Adobe's armsvc.exe, versions 1.824.31.1644 or older, runs as a system service and can be manipulated to delete arbitrary files regardless of access controls. <br>
+			Security Risk Level: <br>
+			CVSS (v3.0) = 3.8 Low <br>
+			Possible Solution(s) / Fixe(s): <br>
+			Be careful when high privilege programs interact with low privilege writable locations. <br>
+			Exploit Code / Vulnerable Software Source(s) [Private] : <br>
+			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile-2018" style="color: #42bcf4;">Github PoC Link</a><br>
+			Reported to Adobes's PSIRT and coordinated public disclosure. Product was patched in APSB19-41.<br>
+		</p>
 	</div>
 	<script>
 		// JavaScript's asynchronous functions calls give me nightmares!
@@ -280,7 +295,7 @@
 		
 		function clearOutputBox(strDoNot) {
 			strId = "p_display"
-			for(var i =1; i <= 20; i++) { // Max number
+			for(var i =1; i <= 21; i++) { // Max number
 				strTempId = strId + i.toString();
 				if(strTempId != strDoNot) {
 					var e = document.getElementById(strTempId);
@@ -470,6 +485,16 @@
 				}
 				clearOutputBox("p_display20");
 			}
+			if(CVEId == "2019-8007") {
+				e = document.getElementById("p_display21");
+				if(e.getAttribute("style") == "visibility: visible;") {
+					e.style = "visibility : hidden";
+				} else {
+					e.style = "visibility : visible";
+				}
+				clearOutputBox("p_display21");
+			}
+			
 		}
 	</script>
 </html>
