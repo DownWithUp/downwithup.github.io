@@ -141,6 +141,7 @@ div.display {
 	border-left: none;
 	border-right: none;
 	overflow-y: scroll;
+	background-color: #323335;
 }
 div.code{
 	margin-left: 10%;
@@ -156,8 +157,8 @@ p.p_display {
 	margin-bottom: 0px;
 	margin-left: 0px;
 	margin-right: 0px;
-	padding-left: 10px;
-	padding-right: 10px;
+	padding-left: 15px;
+	padding-right: 15px;
 
 	visibility: hidden;
 	max-height: 0px;
