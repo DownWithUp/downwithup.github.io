@@ -65,10 +65,8 @@ button.CVE {
 	margin: 12px 10px;
 	text-align: center;
 	font-family: "Oxygen", Tahoma;
-	display: block;
-	width: 190px;
+	width: 50%;
 	font-weight: 100;
-	float: left;
 	overflow: auto;
 }
 button:hover {
