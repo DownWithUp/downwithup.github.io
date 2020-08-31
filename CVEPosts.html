@@ -10,7 +10,9 @@
 	<body bgcolor = "#323335">
 		<center>
 		<div>
+			<button class="CVE" onclick='showRawText("2020-9540")'>Sophos HitmanPro.Alert's 3.7.12 service insecure downloads | CVE-2020-9540</button>
 			<button class="CVE" onclick='showRawText("2020-8508")'>Norman Malware Cleaner's v2.08.08 nsak64.sys arbitrary address calls | CVE-2020-8508</button>
+			<button class="CVE" onclick='showRawText("2019-0142")'>Intel's Ethernet 700 Series Controller software's Ilp60x64.sys arbitrary write | CVE-2019-0142</button>
 			<button class="CVE" onclick='showRawText("2019-8007")'>Adobe's armsvc.exe v1.824.31.1644 arbitrary file deletion | CVE-2019-8007</button>
 			<button class="CVE" onclick='showRawText("2019-10617")'>Lenovo's PLHotkeyService.exe v1.2.0.8 DLL hijacking | CVE-2019-10617</button>
 			<button class="CVE" onclick='showRawText("2019-6165")'>Qualcomm Atheros QCA61x4 devices v10.0.10011.16384 AdminService.exe arbitrary registry edits | CVE-2019-6165</button>
@@ -302,8 +304,20 @@
 		</p>
 		
 		<p class="p_display" id="p_display22">
+			About CVE-2019-0142: <br>
+			Intel's software for their 700 series ethernet controllers utilizes Ilp60x64.sys, which before package version 24.0, allowed the user to write arbitrary data to kernel mode addresses.<br>
+			Security Risk Level: <br>
+			CVSS (v3.0) = 7.2 High <br>
+			Possible Solution(s) / Fixe(s): <br>
+			Be careful when dereferencing addresses. Compare with MmHighestUserAddress or use probing APIs.<br>
+			Exploit Code / Vulnerable Software Source(s) [Public] : <br>
+			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+			Reported to Intel's bug bounty and coordinated public disclosure. Product was patched in INTEL-SA-00255.<br>
+		</p>
+		
+		<p class="p_display" id="p_display23">
 			About CVE-2020-8508: <br>
-			Norman Malware Cleaner, versions 2.08.08 and possibly others, load nsak64.sys which unprivileged users to call arbitrary kernel functions. <br>
+			Norman Malware Cleaner, versions 2.08.08 and possibly others, load nsak64.sys which unprivileged users can abuse to call arbitrary kernel functions. <br>
 			Security Risk Level: <br>
 			CVSS (v3.0) = 7.2 High<br>
 			Possible Solution(s) / Fixe(s): <br>
@@ -311,6 +325,18 @@
 			Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
 			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
 			Norman Safeground AS is no longer in business, and therefore the product is no longer supported.<br>
+		</p>
+		
+		<p class="p_display" id="p_display24">
+			About CVE-2020-9540: <br>
+			HitmanPro.Alert, versions 3.7.12 and earlier, download files over http as a normal user, then are run as SYSTEM. The connection is proxyable.<br>
+			Security Risk Level: <br>
+			CVSS (v3.0) = 7.2 High<br>
+			Possible Solution(s) / Fixe(s): <br>
+			Use HTTPS or download via the privileged process which would not allow normal users to proxy.<br>
+			Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+			<a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+			Reported to Sophos's bug bounty and coordinated public disclosure. Future releases are patched.<br>
 		</p>
 	</div>
 	<script>
@@ -322,7 +348,7 @@
 		
 		function clearOutputBox(strDoNot) {
 			strId = "p_display"
-			for(var i =1; i <= 22; i++) { // Max number
+			for(var i =1; i <= 24; i++) { // Max number
 				strTempId = strId + i.toString();
 				if(strTempId != strDoNot) {
 					var e = document.getElementById(strTempId);
@@ -521,7 +547,7 @@
 				}
 				clearOutputBox("p_display21");
 			}
-			if(CVEId == "2020-8508") {
+			if(CVEId == "2019-0142") {
 				e = document.getElementById("p_display22");
 				if(e.getAttribute("style") == "visibility: visible;") {
 					e.style = "visibility : hidden";
@@ -529,6 +555,24 @@
 					e.style = "visibility : visible";
 				}
 				clearOutputBox("p_display22");
+			}
+			if(CVEId == "2020-8508") {
+				e = document.getElementById("p_display23");
+				if(e.getAttribute("style") == "visibility: visible;") {
+					e.style = "visibility : hidden";
+				} else {
+					e.style = "visibility : visible";
+				}
+				clearOutputBox("p_display23");
+			}
+			if(CVEId == "2020-9540") {
+				e = document.getElementById("p_display24");
+				if(e.getAttribute("style") == "visibility: visible;") {
+					e.style = "visibility : hidden";
+				} else {
+					e.style = "visibility : visible";
+				}
+				clearOutputBox("p_display24");
 			}
 			
 		}
