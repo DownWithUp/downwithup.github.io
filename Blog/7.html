@@ -1,0 +1,63 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+	<link rel="stylesheet" href="../style.css">
+	<link rel="icon" href="../favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Github Website</title>
+	</head>
+	<h1>The Win32k Import Mystery</h1>
+	<h3>11/12/20</h3>
+	<body bgcolor = "#323335">
+	<h2>The Crash</h2>
+    <p class="rre">
+		This all began when I was playing around with the PE file format and ended up tinkering with the loading process of drivers. Upon loading a particularly simple driver the OS crashed with the following error:
+		<br>
+			<img src="./P7-Image1.png" class="blog">
+		<br>
+		The stack clearly shows the bugcheck occuring within the driver loading process.
+		<br>
+			<img src="./P7-Image2.png" class="blog">
+		<br>
+		I instantly suspected that the issue was with the imports as the driver I loaded only imported functions from Win32k.
+		<br>
+			<img src="./P7-Image3.png" class="blog">
+		<br>
+	</p>
+	<h2>Analysis</h2>
+	<p class="ree">
+		Peering through the callstack functions I found that MiResolveImageReferences appeared to be the one with the logic I was interested in. To summerize the function:
+		<ul class="blog">
+		<li>Uses RtlImageDirectoryEntryToData to find the import directory (IMAGE_DIRECTORY_ENTRY_IMPORT) of the loading driver PE</li>
+		<li>Finds first module to resolve addresses from. In this case it is Win32k.sys</li>
+		<li>Walks the PsLoadedModuleList looking for the module using RtlEqualUnicodeString</li>
+		<li>Once found, MiSessionReferenceImage is called with the the module (Win32k) address as its only argument</li>
+		<li>MiSessionReferenceImage immediately calls MiSessionLookupImage and passes the address</li>
+		<li>Inside MiSessionLookupImage the current process' EPROCESS structure is derferenced, followed by the Session memeber</li>
+		<li>In this case, the Session member is null</li>
+		<li>There is no check. The Session member is derefereced (+0x58) and the system crashes</li>
+		</ul>
+	</p>
+	<p class="ree">
+		While testing other drivers, I found that the Session member always appears to be null as the loading context takes place in the System process.
+		However, while other drivers do trigger MiResolveImageReferences, they never reach MiSessionReferenceImage. That is until I looked at drivers loaded at boot time.
+		The inital loaded of the Win32k* drivers do reach MiSessionReferenceImage, however they have a valid Session member in thier EPROCESS. This appears to be due to the fact
+		that they are loaded by csrss.exe and not the system process.
+	</p>
+	<h2>Further Information</h2>
+	<p class="ree">
+		In the end, I could've learned all this from a StackOverflow anwser <a target="_blank" href="https://stackoverflow.com/questions/22557832/reach-kernel-session-space-from-kernel-driver" style="color: #42bcf4; font-size: 16px;">anwser</a> which explains the results  I was seeing.
+		In addition, the csrss process loads the Win32k* drivers in the current session. The system process is not part of that session. The API called is not NtLoadDriver, but rather NtSetSystemInformation using a special infromation class seen <a target="_blank" href="https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/set.htm" style="color: #42bcf4; font-size: 16px;">here</a>.
+		With this information, it appears that drivers, at least those loaded via NtLoadDriver, were never designed to import (in PE loader terms) functions from Win32k. Perhaps in past Windows versions it was possible.
+		Another mystery solved?
+	</p>
+	<hr>
+	<center>
+    	<button onclick="goBack()">Back</button>
+	</center>
+	</body>
+	<script>
+		function goBack() {
+			location.href = "../BlogIndex.html";
+		}
+	</script>
+</html>
