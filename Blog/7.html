@@ -45,7 +45,7 @@
 	</p>
 	<h2>Further Information</h2>
 	<p class="ree">
-		In the end, I could've learned all this from a StackOverflow anwser <a target="_blank" href="https://stackoverflow.com/questions/22557832/reach-kernel-session-space-from-kernel-driver" style="color: #42bcf4; font-size: 16px;">anwser</a> which explains the results  I was seeing.
+		In the end, I could've learned all this from a StackOverflow <a target="_blank" href="https://stackoverflow.com/questions/22557832/reach-kernel-session-space-from-kernel-driver" style="color: #42bcf4; font-size: 16px;">anwser</a> which explains the results  I was seeing.
 		In addition, the csrss process loads the Win32k* drivers in the current session. The system process is not part of that session. The API called is not NtLoadDriver, but rather NtSetSystemInformation using a special infromation class seen <a target="_blank" href="https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/set.htm" style="color: #42bcf4; font-size: 16px;">here</a>.
 		With this information, it appears that drivers, at least those loaded via NtLoadDriver, were never designed to import (in PE loader terms) functions from Win32k. Perhaps in past Windows versions it was possible.
 		Another mystery solved?
