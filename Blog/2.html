@@ -17,8 +17,11 @@ Driver Easy seems to have a large database of drivers, and I thought I could acc
 The encryption is a combination of: gzip compression, base64, and xor flipping. That is the encryption order, so naturally the decryption is the opposite. For the xor step, they would of course use a long randomly generated key, right? (They are a  Gold partner with Microsoft for application development. Link: <a target="_blank" href="https://www.microsoft.com/en-us/solution-providers/partnerdetails/easeware_fa9bb6d5-d5b8-476c-b1c9-ba5ee90dee56/4c973ecb-b0ea-4ead-acc5-f5eabbaf8c9b" style="color: #42bcf4; font-size: 16px;">Click Me</a>) <br>
 How about: “39096799Easy” 
 
-Yes, that is the xor key used for the traffic encryption. With the traffic decrypted, I was able to see that communication was done using XML. Encrypting and sending an XML file like this: <div class="code"><script src="https://gist.github.com/DownWithUp/8d689f88e0c40e75119105fb1f36776c.js"></script></div><p class="rre">MachineId can be anything.
-After you decrypt the response, it will look like this: </p><div class="code"><script src="https://gist.github.com/DownWithUp/b44465a468e6f9a9c17bded466ef1588.js"></script></div><p class="rre">
+Yes, that is the xor key used for the traffic encryption. With the traffic decrypted, I was able to see that communication was done using XML. Encrypting and sending an XML file like <a target="_blank" href="https://gist.github.com/DownWithUp/8d689f88e0c40e75119105fb1f36776c" style="color: #42bcf4; font-size: 16px;">this</a>. 
+
+<p class="rre">MachineId can be anything.
+After you decrypt the response, it will look like <a target="_blank" href="https://gist.github.com/DownWithUp/b44465a468e6f9a9c17bded466ef1588" style="color: #42bcf4; font-size: 16px;">this</a> 
+<p class="rre">
 As you can see, you NEED to know the Hardware Ids for the drivers you are looking for. Unfortunately brute-forcing, or even educated guessing would be extremely ineffective as vendors can name them, and guidelines are very bare. 
 
 In conclusion, my attempts to gain a large amount of possibly vulnerable drivers failed. However, I did practice my Python skills. Hopefully in the future I'll look into more of these driver assistant programs that the internet seems to be full of. 
