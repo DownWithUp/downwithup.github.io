@@ -15,8 +15,8 @@ h2 {
 	padding-bottom: 0;
 	cursor: default;
 	font-weight: 100;
-	margin-left: 10%;
-	margin-right: 10%;
+	margin-left: 15%;
+	margin-right: 15%;
 	margin-top: 8px;
 	margin-bottom: 0;
 }
@@ -112,19 +112,19 @@ a {
 }
 p {
 	white-space: pre-line;
-	width: 80%;
+	width: 70%;
 	font-family: "Oxygen", Tahoma;
 	font-size: 14px;
 	color: #ffffff;
 	margin-top: 0;
 	position: relative;
-	margin-left: 10%;
-	margin-right: 10%;
+	margin-left: 15%;
+	margin-right: 15%;
 }
 p.rre {
 	position: relative;
-	margin-left: 10%;
-	margin-right: 10%;
+	margin-left: 15%;
+	margin-right: 15%;
 }
 div.display {
 	position: fixed;
@@ -148,8 +148,8 @@ div.code{
 	font-family: "Oxygen", Tahoma;
 	font-size: 14px;
 	color: #ffffff;
-	margin-left: 10%;
-	margin-right: 10%;
+	margin-left: 15%;
+	margin-right: 15%;
 	white-space: pre-wrap
 }
 p.notes { 
@@ -176,7 +176,7 @@ img.blog {
 	margin-right: auto;
 }
 hr {
-	width: 80%;
+	width: 70%;
 	color: #ffffff;
 }
 ul.blog {
