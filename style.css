@@ -142,8 +142,15 @@ div.display {
 	background-color: #323335;
 }
 div.code{
+	border: 4px solid #ffffff;
+	/*outline-offset: 15px;*/
+	margin: 2px;
+	font-family: "Oxygen", Tahoma;
+	font-size: 14px;
+	color: #ffffff;
 	margin-left: 10%;
 	margin-right: 10%;
+	white-space: pre-wrap
 }
 p.notes { 
 	position: relative;
