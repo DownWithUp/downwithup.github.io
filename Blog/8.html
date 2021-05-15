@@ -33,7 +33,7 @@
 	} BULK_MEMORY_INFORMATION, *PBULK_MEMORY_INFORMATION;
 	</div>
 	<p class="rre">
-		As a side note: When creating this structure definition I remembered seeing similar Windows structs which has arrays as the last element but had it defined as a 1-length based, looking into this I found <a target="_blank" href="https://devblogs.microsoft.com/oldnewthing/20040826-00/?p=38043" style="color: #42bcf4; font-size: 16px;">this</a> post by Raymond Chen explain why this is the case. 
+		As a side note: When creating this structure definition I remembered seeing similar Windows structs which has arrays as the last element but had it defined as a 1-length based, looking into this I found <a target="_blank" href="https://devblogs.microsoft.com/oldnewthing/20040826-00/?p=38043" style="color: #42bcf4; font-size: 16px;">this</a> post by Raymond Chen explaining why this is the case. 
 		The QueryFlags member does not seem to be used except for being bitwise anded with 0xFFFFFFFC so only 1, 2, and 3 are valid. Again these are currently not used to control anything, but needs to be set or you'll get STATUS_NOT_SUPPORTED.
 		The main logic then follows which involves attaching to the provided process handle, re-calling itself in with the "Zw" variant of PssCaptureVaSpaceBulk, and then preforming a loop of NtQueryVirtualMemory. In the past, looping VirtualQuery(Ex) is essentially what developers had to do to query the memory of a process. That code would look something like this:
 	</p>
