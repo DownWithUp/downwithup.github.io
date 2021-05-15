@@ -15,7 +15,8 @@
 		My Google searching skills discovered that there is no offical prototype for this function, and so my final definition looks like this: 
 	</p>	
 	<div class="code">
-	NTSTATUS NtPssCaptureVaSpaceBulk(HANDLE ProcessHandle, PVOID BaseAddress, PBULK_MEMORY_INFORMATION MemoryInfo, SIZE_T Length, PSIZE_T ReturnLength);
+	NTSTATUS NtPssCaptureVaSpaceBulk(HANDLE ProcessHandle, PVOID BaseAddress, PBULK_MEMORY_INFORMATION MemoryInfo, SIZE_T Length, 
+		PSIZE_T ReturnLength);
 	</div>
 	<p class="rre">
 		The structure of BULK_MEMORY_INFORMATION is:
