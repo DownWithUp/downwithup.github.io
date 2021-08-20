@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>The Win32k Import Mystery</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/archives">Archive</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/feed.xml">RSS Feed</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2020/11/12/post7.html">The Win32k Import Mystery</a></h1>
+	
+
+	<div class="post-content"><h2 id="the-crash">The Crash</h2>
+<p>This all began when I was playing around with the PE file format and ended up tinkering with the loading process of drivers. Upon loading a particularly simple driver the OS crashed with the following error:</p>
+
+<p><img src="/assets/img/P7-Image1.png" alt="IMG1" /></p>
+
+<p>The stack clearly shows the bugcheck occuring within the driver loading process.</p>
+
+<p><img src="/assets/img/P7-Image2.png" alt="IMG1" /></p>
+
+<p>I instantly suspected that the issue was with the imports as the driver I loaded only imported functions from Win32k.</p>
+
+<p><img src="/assets/img/P7-Image3.png" alt="IMG1" /></p>
+
+<h2 id="analysis">Analysis</h2>
+<p>Peering through the callstack functions I found that MiResolveImageReferences appeared to be the one with the logic I was interested in. To summerize the function:</p>
+
+<p><code class="language-plaintext highlighter-rouge">1.</code> Uses <code class="language-plaintext highlighter-rouge">RtlImageDirectoryEntryToData</code> to find the import directory (<code class="language-plaintext highlighter-rouge">IMAGE_DIRECTORY_ENTRY_IMPORT</code>) of the loading driver PE</p>
+
+<p><code class="language-plaintext highlighter-rouge">2.</code> Finds first module to resolve addresses from. In this case it is Win32k.sys</p>
+
+<p><code class="language-plaintext highlighter-rouge">3.</code> Walks the <code class="language-plaintext highlighter-rouge">PsLoadedModuleList</code> looking for the module using <code class="language-plaintext highlighter-rouge">RtlEqualUnicodeString</code></p>
+
+<p><code class="language-plaintext highlighter-rouge">4.</code> Once found, <code class="language-plaintext highlighter-rouge">MiSessionReferenceImage</code> is called with the the module (Win32k) address as its only argument</p>
+
+<p><code class="language-plaintext highlighter-rouge">5.</code> <code class="language-plaintext highlighter-rouge">MiSessionReferenceImage</code> immediately calls <code class="language-plaintext highlighter-rouge">MiSessionLookupImage</code> and passes the address</p>
+
+<p><code class="language-plaintext highlighter-rouge">6.</code> Inside <code class="language-plaintext highlighter-rouge">MiSessionLookupImage</code> the current process’ <code class="language-plaintext highlighter-rouge">EPROCESS</code> structure is derferenced, followed by the Session memeber</p>
+
+<p><code class="language-plaintext highlighter-rouge">7.</code> In this case, the Session member is null</p>
+
+<p><code class="language-plaintext highlighter-rouge">8.</code> There is no check. The Session member is derefereced (+0x58) and the system crashes</p>
+
+<p>While testing other drivers, I found that the Session member always appears to be null as the loading context takes place in the System process. However, while other drivers do trigger <code class="language-plaintext highlighter-rouge">MiResolveImageReferences</code>, they never reach <code class="language-plaintext highlighter-rouge">MiSessionReferenceImage</code>. That is until I looked at drivers loaded at boot time. The inital loaded of the Win32k* drivers do reach <code class="language-plaintext highlighter-rouge">MiSessionReferenceImage</code>, however they have a valid Session member in thier <code class="language-plaintext highlighter-rouge">EPROCESS</code>. This appears to be due to the fact that they are loaded by csrss.exe and not the actual system (PID 4) process.</p>
+
+<h2 id="further-information">Further Information</h2>
+
+<p>In the end, I could’ve learned all this from a StackOverflow <a href="https://stackoverflow.com/questions/22557832/reach-kernel-session-space-from-kernel-driver">anwser</a> which explains the results I was seeing.
+In addition, the csrss process loads the Win32k* drivers in the current session. The system process is not part of that session. The API called is not <code class="language-plaintext highlighter-rouge">NtLoadDriver</code>, but rather <code class="language-plaintext highlighter-rouge">NtSetSystemInformation</code> using a special infromation class seen <a href="https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/set.htm">here</a>.
+With this information, it appears that drivers, at least those loaded via <code class="language-plaintext highlighter-rouge">NtLoadDriver</code>, were never designed to import (in PE loader terms) functions from Win32k. Perhaps in past Windows versions it was possible.
+Another mystery solved?</p>
+
+</div>
+
+	<p class="meta">Posted on <span class="postdate">Nov 12, 2020</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>

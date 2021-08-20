@@ -1,0 +1,19 @@
+---
+layout: post
+title:  "Spoofing the Windows 10's Task Manager"
+date:   2018-03-03 16:51:46 -0700
+categories: blog post
+---
+
+Observant Windows 10 users will notice that some of the new metro apps can only run as a single instance. Examples include Settings and Task Manager. Attempting to open another instance of these processes will result in the already opened one being focused.
+
+I focused on Task Manager. Initially, I began looking for calls to either mutexes or semaphores, which can (if a name argument is passed) be stored in the Windows's object manager. Calls to create a mutex or semaphore with a name that already exists will return `ERROR_ALREADY_EXISTS`. In one such instance `CreateMutexW` used the wide string: `Local\\TM.750ce7b0-e5fd-454f-9fad-2f66513dfa1bTerminal` Having another process create a mutex with this same name will result in `ERROR_ALREADY_EXISTS` being returned whenever the second process calls `CreateMutexW`. The second process, in this case, would be Task Manager
+
+This doesn’t successfully spoof Task Manager, however, as it has more startup checks. After receiving ERROR_ALREADY_EXISTS, Task Manager checks FindWindow for a class “Task Manager” In order to spoof this you need to call CreateWindowEx and pass lpClassName a string of: “TaskManagerWindow” and pass lpWindowName a string of: “Task Manager”
+
+Finally, after Task Manager finds the duplicate Window, it will call `SendMessageTimeoutW` with msg parameter set to: `0x4D3`. The result of `SendMessageTimeoutW` is then compared to `0x4D3`.
+In order for this compare to evaluate to true, you need to specify a place in your `WNDPROC` (From `WNDCLASSEX` in `CreateWindowEx`) for a call to `ReplyMessage` if wmsg, in your `WNDPROC`, is equal to `0x4D3`. `ReplyMessage` needs to be called with the same `0x4D3`. If Task Manager receives `0x4D3` as a reply, it will go down a series of procedures and terminate itself. Check out the [Github PoC Code][poc-link] 
+
+![GIF1](/assets/img/P1-Image1.gif)
+
+[poc-link]: https://github.com/DownWithUp/Spoof-Task-Manager

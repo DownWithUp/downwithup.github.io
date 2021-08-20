@@ -1,0 +1,32 @@
+---
+layout: post
+title:  "The Search For Drivers"
+date:   2018-12-18 16:51:46 -0700
+categories: blog post
+---
+
+Lately I've been digging into driver exploitation in Windows. One of the hardest parts is actually finding the drivers to decompile, debug, and experiment with. This led me to look for easy to find drivers. I found [Driver Easy][driver-easy-link].
+
+Driver Easy seems to have a large database of drivers, and I thought I could access them for experimentation purposes. I discovered that the files are retrieved by HTTP requests but the data is encrypted. Coincidentally the program is a .NET and therefore extremely easy to open up and peek at the inner workings.
+
+The encryption is a combination of: gzip compression, base64, and xor flipping. That is the encryption order, so naturally the decryption is the opposite. For the xor step, they would of course use a long randomly generated key, right? (They are a Gold partner with Microsoft for application development. [Link][gold-link])
+
+How about: `39096799Easy`
+
+Yes, that is the xor key used for the traffic encryption. With the traffic decrypted, I was able to see that communication was done using XML. Encrypting and sending an XML file like [this][gist-1].
+
+`MachineId` can be anything.
+After you decrypt the response, it will look like [this][gist-2].
+
+As you can see, you need to know the `Hardware Ids` for the drivers you are looking for. Unfortunately brute-forcing, or even educated guessing would be extremely ineffective as vendors can name them, and guidelines are very bare.
+
+In conclusion, my attempts to gain a large amount of possibly vulnerable drivers failed. However, I did practice my Python skills. Hopefully in the future I'll look into more of these driver assistant programs that the internet seems to be full of.
+
+`Note:` In `Easware.Driver.Core`, a module loaded by the DriverEasy.exe assembly there is a Class of functions called `DriverUpload` Sadly this function isn't used in the application, and the upload server, found in the program, always returns 403 – Forbidden. However, at one time, Driver Easy may have been uploading users drivers to build their own database, imagine the security problems. This is only a theory though.
+[Scripts and repository][scripts]
+
+[driver-easy-link]: https://www.drivereasy.com
+[gold-link]: https://www.microsoft.com/en-us/solution-providers/partnerdetails/easeware_fa9bb6d5-d5b8-476c-b1c9-ba5ee90dee56/4c973ecb-b0ea-4ead-acc5-f5eabbaf8c9b
+[gist-1]: https://gist.github.com/DownWithUp/8d689f88e0c40e75119105fb1f36776c
+[gist-2]: https://gist.github.com/DownWithUp/b44465a468e6f9a9c17bded466ef1588
+[scripts]: https://github.com/DownWithUp/Driver-Easy-Research

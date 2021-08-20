@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>Vulnerabilities In Similar Software</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/archives">Archive</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/feed.xml">RSS Feed</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2019/03/19/post3.html">Vulnerabilities In Similar Software</a></h1>
+	
+
+	<div class="post-content"><p>SoftEther VPN is a VPN program by the university of Tsukba in Japan. Users can use the client program to connect to servers, or use theserver program to host servers. <a href="https://www.softether-download.com/en.aspx">The Server Manager</a> for Windows used a driver named See.sys for low level operations. This driver (<code class="language-plaintext highlighter-rouge">See.sys</code>) was actually part of SoftEther’s github repository which can be found <a href="https://github.com/SoftEtherVPN/SoftEtherVPN/tree/master/src/See">here</a>.</p>
+
+<p>The driver is based off the old WinPcap driver which had an issue (CVE-2007-3681) with <code class="language-plaintext highlighter-rouge">malfourmed IRP Parameters</code>. Here are <a href="https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3681">More Details</a>.
+When a user program sends an IOCTL to a driver it is packaged, along with buffers, sizes, and other information inside of an IRP. IRPs have a field that named UserBuffer. This is the output buffer in a <code class="language-plaintext highlighter-rouge">DeviceIoControl</code> call. When a device is created with <code class="language-plaintext highlighter-rouge">DO_DIRECT_IO</code> (as this one does) there is no <code class="language-plaintext highlighter-rouge">Irp-&gt;AssociatedIrp.SystemBuffer</code>, so output data is usually copied to the <code class="language-plaintext highlighter-rouge">UserBuffer</code>.
+The issue is that no checks are preformed on the <code class="language-plaintext highlighter-rouge">UserBuffer</code> by the IO Manager. Obviously, a <code class="language-plaintext highlighter-rouge">ProbeForWrite</code> could be used on <code class="language-plaintext highlighter-rouge">IRP.UserBuffer</code>, but the programmers of WinPcap didn’t. The WinPcap driver had this issue fixed quite a while ago, but the <code class="language-plaintext highlighter-rouge">See.sys</code> driver, based on the WinPcap driver, was forgotten.</p>
+
+<p>In <code class="language-plaintext highlighter-rouge">See.sys</code>, there is an IOCTL (<code class="language-plaintext highlighter-rouge">0x1CF7</code>) which calls memmove with a destination on <code class="language-plaintext highlighter-rouge">IRP.UserBuffer</code> (rdi+70H) The source ends up being the the wide string “SEEXXXXXXXXXX” where the X’s are digits associated with the event name (according to the source) The size is a constant <code class="language-plaintext highlighter-rouge">0x1A</code>.
+<img src="/assets/img/P3-Image1.png" alt="IMG1" /></p>
+
+<p>While the data isn’t fully controllable, the destination is. This is the critical issue in this driver. Because you can write this string anywhere in kernel memory, it is possible to overwrite some bit fields and gain elevated priviliges. In my PoC, the call writes the string to the <code class="language-plaintext highlighter-rouge">K_USER_SHARED_DATA</code> memory region at offset <code class="language-plaintext highlighter-rouge">+0x80</code>.
+<img src="/assets/img/P3-Image2.png" alt="IMG2" /></p>
+
+<p>This issue was reported and is fixed in the new versions (4.3+). <a href="https://www.softether.org/9-about/News/900-SEVPN201901">SoftEther Notice</a>. Special thanks to Daiyuu Nobori of the SoftEther team. It was assigned CVE-2019-11868.
+The PoC code is available on my github <a href="https://github.com/DownWithUp/CVE-Stockpile/blob/master/CVE-2019-11868.c">here</a>.</p>
+
+</div>
+
+	<p class="meta">Posted on <span class="postdate">Mar 19, 2019</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>The Search For Drivers</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/archives">Archive</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/feed.xml">RSS Feed</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2018/12/18/post2.html">The Search For Drivers</a></h1>
+	
+
+	<div class="post-content"><p>Lately I’ve been digging into driver exploitation in Windows. One of the hardest parts is actually finding the drivers to decompile, debug, and experiment with. This led me to look for easy to find drivers. I found <a href="https://www.drivereasy.com">Driver Easy</a>.</p>
+
+<p>Driver Easy seems to have a large database of drivers, and I thought I could access them for experimentation purposes. I discovered that the files are retrieved by HTTP requests but the data is encrypted. Coincidentally the program is a .NET and therefore extremely easy to open up and peek at the inner workings.</p>
+
+<p>The encryption is a combination of: gzip compression, base64, and xor flipping. That is the encryption order, so naturally the decryption is the opposite. For the xor step, they would of course use a long randomly generated key, right? (They are a Gold partner with Microsoft for application development. <a href="https://www.microsoft.com/en-us/solution-providers/partnerdetails/easeware_fa9bb6d5-d5b8-476c-b1c9-ba5ee90dee56/4c973ecb-b0ea-4ead-acc5-f5eabbaf8c9b">Link</a>)</p>
+
+<p>How about: <code class="language-plaintext highlighter-rouge">39096799Easy</code></p>
+
+<p>Yes, that is the xor key used for the traffic encryption. With the traffic decrypted, I was able to see that communication was done using XML. Encrypting and sending an XML file like <a href="https://gist.github.com/DownWithUp/8d689f88e0c40e75119105fb1f36776c">this</a>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">MachineId</code> can be anything.
+After you decrypt the response, it will look like <a href="https://gist.github.com/DownWithUp/b44465a468e6f9a9c17bded466ef1588">this</a>.</p>
+
+<p>As you can see, you need to know the <code class="language-plaintext highlighter-rouge">Hardware Ids</code> for the drivers you are looking for. Unfortunately brute-forcing, or even educated guessing would be extremely ineffective as vendors can name them, and guidelines are very bare.</p>
+
+<p>In conclusion, my attempts to gain a large amount of possibly vulnerable drivers failed. However, I did practice my Python skills. Hopefully in the future I’ll look into more of these driver assistant programs that the internet seems to be full of.</p>
+
+<p><code class="language-plaintext highlighter-rouge">Note:</code> In <code class="language-plaintext highlighter-rouge">Easware.Driver.Core</code>, a module loaded by the DriverEasy.exe assembly there is a Class of functions called <code class="language-plaintext highlighter-rouge">DriverUpload</code> Sadly this function isn’t used in the application, and the upload server, found in the program, always returns 403 – Forbidden. However, at one time, Driver Easy may have been uploading users drivers to build their own database, imagine the security problems. This is only a theory though.
+<a href="https://github.com/DownWithUp/Driver-Easy-Research">Scripts and repository</a></p>
+
+</div>
+
+	<p class="meta">Posted on <span class="postdate">Dec 18, 2018</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>When Downloads Lead to LPE</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/archives">Archive</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/feed.xml">RSS Feed</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2020/03/25/post6.html">When Downloads Lead to LPE</a></h1>
+	
+
+	<div class="post-content"><h2 id="observations">Observations</h2>
+<p>In the world of privlige escalation, 3rd party elevated service programs are espically interesting to look at. One such program is Sophos’ <code class="language-plaintext highlighter-rouge">HitmanPro.Alert (HMPA)</code>.
+This program is designed to work with an additional AV product to provide “advanced” detection and prevention capabilities against malware and exploits.</p>
+
+<p>However, this HMPA became interesting when I observed this message in my kernel debugger:</p>
+
+<p><img src="/assets/img/P6-Image1.png" alt="IMG1" /></p>
+
+<p>Just from this message there are a couple of issues I had to research. Are downloads really over HTTP? What does an update look like (full exe or just dll plugin)? Is the directory really a low privileged controlled directory?
+Using Wireshark I was able to identify that the downloads were really HTTP (they use <code class="language-plaintext highlighter-rouge">URLDownloadToFile</code>). Secondly, using a proxy I was able to get a file to appear in user’s temp directory. The “update” is just the full hmpalert.exe (yes, the one that is downloaded when you first install). Depending on which flag was used in the command line <code class="language-plaintext highlighter-rouge">/service</code> for the service, <code class="language-plaintext highlighter-rouge">/tray</code> for the tray icon and user interactive version, etc… But they are all the same executable.</p>
+
+<p>After fiddling with the proxy server, I discovered the service will execute whatever file you give it, as long as it is digitally signed. It’s important to note that ANY signer is accepted. This means that anyone with a couple hundered bucks and a “valid” company someone could spoof updates. The only issue is that update checks only happen on startup and ~60 minutes.
+While the possiblity of RCE is interesting, I was looking for LPE and discovered something else. The “Scan” feature of HMPA actually donwloads HitmanPro (not Alert) from <code class="language-plaintext highlighter-rouge">http://get.hitmanpro.com</code> which could also be spoofed. This however, can be triggerd at any time because the <code class="language-plaintext highlighter-rouge">/tray</code> instance of HMPA listens for window messages.</p>
+
+<p><img src="/assets/img/P6-Image2.png" alt="IMG1" /></p>
+
+<p>The actual communication with the <code class="language-plaintext highlighter-rouge">/service</code> instance takes place over named pipes, but simply broadcasting to all windows with <a href="https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagea">SendMessage</a> with the proper Msg and Param allows for any user to trigger a download and run (under <code class="language-plaintext highlighter-rouge">SYSTEM</code> user) of the scanner.
+Because the program is downloaded to the current user’s temp directory (like the update) I figured DLL hijacking would work. However, the scanner program by Sophos was very careful to only load libraries from <code class="language-plaintext highlighter-rouge">System32</code>. Everything then changed when I realized that the downloading of the scanner took place in the <code class="language-plaintext highlighter-rouge">/tray</code> instance which meant that a local proxy could work to spoof the downloads.
+Using <a href="https://docs.microsoft.com/en-us/windows/win32/api/wininet/nf-wininet-internetsetoptiona">InternetSetOption</a> with approprite flags, a user can set the global proxy which applies to all processes running as that user (so not <code class="language-plaintext highlighter-rouge">SYSTEM</code> processes).</p>
+
+<h2 id="results-and-fix">Results and Fix</h2>
+<p>In the end, the PoC I sent to Sophos did the following:</p>
+
+<p><code class="language-plaintext highlighter-rouge">1.</code> Clears download cache</p>
+
+<p><code class="language-plaintext highlighter-rouge">2.</code> Starts server and sets global proxy</p>
+
+<p><code class="language-plaintext highlighter-rouge">3.</code> Broadcast’s scan message to all windows</p>
+
+<p><code class="language-plaintext highlighter-rouge">4.</code> Feeds cmd.exe (or any signed binary) to client</p>
+
+<p>The client <code class="language-plaintext highlighter-rouge">/tray</code> then notifys the <code class="language-plaintext highlighter-rouge">/service</code> which executes as SYSTEM the signed binary. Because any signed binary is allowed, a DLL hijacking, or simply getting a certificate could led to LPE for custom code.
+I worked with Sohpos’ PSIRT to fix the issue. They published an advisory which can be found <a href="https://community.sophos.com/kb/en-us/135259">here</a>.
+In addition, I’ve uploaded the PoC code which can be downloaded <a href="https://github.com/DownWithUp/CVE-Stockpile">here</a>. To my knowledge Sophos fixed the problem by only executing images signed by their certificate.</p>
+
+</div>
+
+	<p class="meta">Posted on <span class="postdate">Mar 25, 2020</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>

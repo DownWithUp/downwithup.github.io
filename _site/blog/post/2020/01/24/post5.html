@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>Creating Fake Drivers</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/archives">Archive</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/feed.xml">RSS Feed</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2020/01/24/post5.html">Creating Fake Drivers</a></h1>
+	
+
+	<div class="post-content"><h2 id="research">Research</h2>
+<p>Drivers commanly use IOCTLs for communication from user and kernel mode, but what really goes on behind the scene. <code class="language-plaintext highlighter-rouge">DeviceIoControl</code> is the API responsible for sending an <code class="language-plaintext highlighter-rouge">IRP_MJ_DEVICE_CONTROL</code> request (along with an IOCTL and buffers of data) to a driver.
+The driver specifies the address of the funciton that then handles these requests. This is done through the array <code class="language-plaintext highlighter-rouge">DRIVER_OBJECT.MajorFunction[]</code>. Continuing to trace back, the <code class="language-plaintext highlighter-rouge">DRIVER_OBJECT</code> comes from the DriverEntry which is the entry point on a WDM driver. It’s clear that the <code class="language-plaintext highlighter-rouge">DRIVER_OBJECT</code> needed for IOCTL communication comes from the kerenl, but where?
+Following at <code class="language-plaintext highlighter-rouge">NtLoadDriver</code> eventually leads to IopLoadDriver which calls <code class="language-plaintext highlighter-rouge">ObCreateObject</code> with <code class="language-plaintext highlighter-rouge">IoDriverObjectType</code> as the <code class="language-plaintext highlighter-rouge">OBJECT_TYPE</code>. It’s worth noting that driver objects can be viewed in the NT object manager under the “Driver” subdirectory with tools such as <a href="https://github.com/hfiref0x/WinObjEx64">WinObjEx</a>.</p>
+
+<p><code class="language-plaintext highlighter-rouge">ObCreateObject</code> with <code class="language-plaintext highlighter-rouge">IoDriverObjectType</code> allows us to create our own driver object. To ensure the object survives and is not deleted you need to reference the object. For example you can use <code class="language-plaintext highlighter-rouge">ObReferenceObjectByPointer</code> or in the object attributes pass <code class="language-plaintext highlighter-rouge">OBJ_PERMANENT</code> which will start the reference count at 1.
+It is then necessary to call <code class="language-plaintext highlighter-rouge">ObInsertObject</code> in order to add the object to the system. <code class="language-plaintext highlighter-rouge">ObInsertObject</code> returns a handle, which can be closed as it does not affect whether the object will be deleted or not. Next, there are several members of the driver that we need to modify, the first being the <code class="language-plaintext highlighter-rouge">MajorFunction</code> member which points to the function(s) that will handle IOCTLs. Secondly, the Flags member needs to be specifically set with the type of IO transfers that the driver object will use. Finally, the <code class="language-plaintext highlighter-rouge">FastIoDispatch</code> member must be set to NULL (or could be a valid handler) so the kernel won’t try and direct functions to it. All other members are optional.
+An example of a newly created driver object:</p>
+
+<p><img src="/assets/img/P5-Image1.png" alt="IMG1" /></p>
+
+<h2 id="purpose">Purpose</h2>
+<p>With the ability to create a fake driver and device, a executable kernel pool could communicate with and a user mode process using IOCTLs. In addition, I belive it’s good to understand that not every driver is really tied to a physical file. Another aspect is that a valid driver can create multiple device objects, or that a device object could actually use the driver object of another driver. This could lead to a “hijacking” of driver objects. In any case, I’ve created a PoC for the method above which can be downloaded <a href="https://github.com/DownWithUp/FakeDriverPoC">here</a>.</p>
+
+</div>
+
+	<p class="meta">Posted on <span class="postdate">Jan 24, 2020</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>

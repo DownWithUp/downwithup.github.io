@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>What is NtPssCaptureVaSpaceBulk</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/archives">Archive</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/feed.xml">RSS Feed</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2021/05/14/post8.html">What is NtPssCaptureVaSpaceBulk</a></h1>
+	
+
+	<div class="post-content"><h2 id="the-api">The API</h2>
+<p>Just a quick post about something I found quite interesting. In Windows 10 version 2004+ (according to <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>) there is a new system call which caught my attention: <code class="language-plaintext highlighter-rouge">NtPssCaptureVaSpaceBulk</code>.
+Specifically the caputing bluk referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the <code class="language-plaintext highlighter-rouge">PsProcessType</code> type as the first parameter, so I looked at the prototype of <code class="language-plaintext highlighter-rouge">NtQueryVirtualMemory</code> and went from there.
+My Google searching skills discovered that there is no offical prototype for this function, and so my final definition looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">NTSTATUS</span> <span class="nf">NtPssCaptureVaSpaceBulk</span><span class="p">(</span><span class="n">HANDLE</span> <span class="n">ProcessHandle</span><span class="p">,</span> 
+        <span class="n">PVOID</span> <span class="n">BaseAddress</span><span class="p">,</span> 
+        <span class="n">PBULK_MEMORY_INFORMATION</span> <span class="n">MemoryInfo</span><span class="p">,</span> 
+        <span class="n">SIZE_T</span> <span class="n">Length</span><span class="p">,</span> 
+        <span class="n">PSIZE_T</span> <span class="n">ReturnLength</span><span class="p">);</span></code></pre></figure>
+
+<p><br />
+The structure of BULK_MEMORY_INFORMATION is:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_BULK_MEMORY_INFORMATION</span>
+<span class="p">{</span>
+	<span class="n">ULONG</span> <span class="n">QueryFlags</span><span class="p">;</span>
+	<span class="n">ULONG</span> <span class="n">NumberOfEntries</span><span class="p">;</span>
+	<span class="n">PVOID</span> <span class="n">MaxUserAddress</span><span class="p">;</span>
+	<span class="n">BYTE</span> <span class="n">Reserved</span><span class="p">[</span><span class="mh">0x18</span><span class="p">];</span>
+	<span class="n">PVOID</span> <span class="n">LowestAddressFound</span><span class="p">;</span>
+	<span class="n">BYTE</span> <span class="n">Reserved2</span><span class="p">[</span><span class="mh">0x10</span><span class="p">];</span>
+    <span class="n">MEMORY_BASIC_INFORMATION</span> <span class="n">MemoryInfo</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span>
+<span class="p">}</span> <span class="n">BULK_MEMORY_INFORMATION</span><span class="p">,</span> <span class="o">*</span><span class="n">PBULK_MEMORY_INFORMATION</span><span class="p">;</span></code></pre></figure>
+
+<p><br />
+As a side note: When creating this structure definition I remembered seeing similar Windows structs which has arrays as the last element but had it defined as a 1-length based, looking into this I found <a href="https://devblogs.microsoft.com/oldnewthing/20040826-00/?p=38043">this</a> post by Raymond Chen explaining why this is the case.</p>
+
+<p>The <code class="language-plaintext highlighter-rouge">QueryFlags</code> member does not seem to be used except for being bitwise anded with 0xFFFFFFFC so only 1, 2, and 3 are valid. Again these are currently not used to control anything, but needs to be set or you’ll get STATUS_NOT_SUPPORTED.
+The main logic then follows which involves attaching to the provided process handle, re-calling itself in with the <code class="language-plaintext highlighter-rouge">Zw</code> variant of <code class="language-plaintext highlighter-rouge">PssCaptureVaSpaceBulk</code>, and then preforming a loop of <code class="language-plaintext highlighter-rouge">NtQueryVirtualMemory</code>. In the past, looping <code class="language-plaintext highlighter-rouge">VirtualQuery(Ex)</code> is essentially what developers had to do to query the memory of a process. That code would look something like this:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">MEMORY_BASIC_INFORMATION</span> <span class="n">memInfo</span><span class="p">;</span>
+<span class="k">for</span> <span class="p">(</span><span class="n">PVOID</span> <span class="n">pMem</span> <span class="o">=</span> <span class="nb">NULL</span><span class="p">;</span> <span class="n">VirtualQueryEx</span><span class="p">(</span><span class="n">GetCurrentProcess</span><span class="p">(),</span> <span class="n">pMem</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">memInfo</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">memInfo</span><span class="p">))</span> <span class="o">==</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">memInfo</span><span class="p">);</span> <span class="p">(</span><span class="n">BYTE</span><span class="o">*</span><span class="p">)</span><span class="n">pMem</span> <span class="o">+=</span> <span class="n">memInfo</span><span class="p">.</span><span class="n">RegionSize</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"Region: %p</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">memInfo</span><span class="p">.</span><span class="n">BaseAddress</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><br />
+But now you can do something like this:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">SIZE_T</span> <span class="n">nReturn</span><span class="p">;</span>
+<span class="n">SIZE_T</span> <span class="n">nHeap</span> <span class="o">=</span> <span class="mh">0x1000</span><span class="p">;</span>
+<span class="n">PBULK_MEMORY_INFORMATION</span> <span class="n">pBulk</span> <span class="o">=</span> <span class="n">HeapAlloc</span><span class="p">(</span><span class="n">GetProcessHeap</span><span class="p">(),</span> <span class="n">HEAP_ZERO_MEMORY</span><span class="p">,</span> <span class="n">nHeap</span><span class="p">);</span>
+<span class="n">pBulk</span><span class="o">-&gt;</span><span class="n">QueryFlags</span> <span class="o">=</span> <span class="mh">0x1</span><span class="p">;</span>
+<span class="k">while</span> <span class="p">(</span><span class="n">NtPssCaptureVaSpaceBulk</span><span class="p">(</span><span class="n">GetCurrentProcess</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pBulk</span><span class="p">,</span> <span class="n">nHeap</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">nReturn</span><span class="p">))</span>
+<span class="p">{</span>
+	<span class="n">HeapFree</span><span class="p">(</span><span class="n">GetProcessHeap</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">pBulk</span><span class="p">);</span>
+	<span class="n">nHeap</span> <span class="o">+=</span> <span class="mh">0x1000</span><span class="p">;</span>
+	<span class="n">pBulk</span> <span class="o">=</span> <span class="n">HeapAlloc</span><span class="p">(</span><span class="n">GetProcessHeap</span><span class="p">(),</span> <span class="n">HEAP_ZERO_MEMORY</span><span class="p">,</span> <span class="n">nHeap</span><span class="p">);</span>
+	<span class="n">pBulk</span><span class="o">-&gt;</span><span class="n">QueryFlags</span> <span class="o">=</span> <span class="mh">0x1</span><span class="p">;</span>
+<span class="p">}</span>
+<span class="k">for</span> <span class="p">(</span><span class="kt">size_t</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">pBulk</span><span class="o">-&gt;</span><span class="n">NumberOfEntries</span><span class="p">;</span> <span class="n">i</span><span class="o">++</span><span class="p">)</span>
+<span class="p">{</span>
+	<span class="n">printf</span><span class="p">(</span><span class="s">"Mem: %p</span><span class="se">\n</span><span class="s">"</span><span class="p">,</span> <span class="n">pBulk</span><span class="o">-&gt;</span><span class="n">MemoryInfo</span><span class="p">[</span><span class="n">i</span><span class="p">].</span><span class="n">BaseAddress</span><span class="p">);</span>
+<span class="p">}</span></code></pre></figure>
+
+<p><br /></p>
+
+<p>Is it more complicated? Yes. Why use it? I’m not sure, but maybe in the future the query flags will be able to gather different information.
+For now it is simply appears to be a redundent way to capture the entire virtual address space of a process.</p>
+
+</div>
+
+	<p class="meta">Posted on <span class="postdate">May 14, 2021</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>

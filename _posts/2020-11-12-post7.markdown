@@ -1,0 +1,52 @@
+---
+layout: post
+title:  "The Win32k Import Mystery"
+date:   2020-11-12 16:51:46 -0700
+categories: blog post
+---
+
+## The Crash
+This all began when I was playing around with the PE file format and ended up tinkering with the loading process of drivers. Upon loading a particularly simple driver the OS crashed with the following error:
+
+![IMG1](/assets/img/P7-Image1.png)
+
+The stack clearly shows the bugcheck occuring within the driver loading process.
+
+![IMG1](/assets/img/P7-Image2.png)
+
+I instantly suspected that the issue was with the imports as the driver I loaded only imported functions from Win32k.
+
+![IMG1](/assets/img/P7-Image3.png)
+
+
+## Analysis
+Peering through the callstack functions I found that MiResolveImageReferences appeared to be the one with the logic I was interested in. To summerize the function:
+
+`1.` Uses `RtlImageDirectoryEntryToData` to find the import directory (`IMAGE_DIRECTORY_ENTRY_IMPORT`) of the loading driver PE
+
+`2.` Finds first module to resolve addresses from. In this case it is Win32k.sys
+
+`3.` Walks the `PsLoadedModuleList` looking for the module using `RtlEqualUnicodeString`
+
+`4.` Once found, `MiSessionReferenceImage` is called with the the module (Win32k) address as its only argument
+
+`5.` `MiSessionReferenceImage` immediately calls `MiSessionLookupImage` and passes the address
+
+`6.` Inside `MiSessionLookupImage` the current process' `EPROCESS` structure is derferenced, followed by the Session memeber
+
+`7.` In this case, the Session member is null
+
+`8.` There is no check. The Session member is derefereced (+0x58) and the system crashes
+
+
+While testing other drivers, I found that the Session member always appears to be null as the loading context takes place in the System process. However, while other drivers do trigger `MiResolveImageReferences`, they never reach `MiSessionReferenceImage`. That is until I looked at drivers loaded at boot time. The inital loaded of the Win32k* drivers do reach `MiSessionReferenceImage`, however they have a valid Session member in thier `EPROCESS`. This appears to be due to the fact that they are loaded by csrss.exe and not the actual system (PID 4) process.
+
+## Further Information
+
+In the end, I could've learned all this from a StackOverflow [anwser][stack-overflow] which explains the results I was seeing.
+In addition, the csrss process loads the Win32k* drivers in the current session. The system process is not part of that session. The API called is not `NtLoadDriver`, but rather `NtSetSystemInformation` using a special infromation class seen [here][classes].
+With this information, it appears that drivers, at least those loaded via `NtLoadDriver`, were never designed to import (in PE loader terms) functions from Win32k. Perhaps in past Windows versions it was possible.
+Another mystery solved?
+
+[stack-overflow]: https://stackoverflow.com/questions/22557832/reach-kernel-session-space-from-kernel-driver
+[classes]: https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/set.htm

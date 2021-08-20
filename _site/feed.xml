@@ -1,0 +1,365 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Main Page</title>
+    <description>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</description>
+    <link>/</link>
+    <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
+    <pubDate>Fri, 20 Aug 2021 04:07:26 -0700</pubDate>
+    <lastBuildDate>Fri, 20 Aug 2021 04:07:26 -0700</lastBuildDate>
+    <generator>Jekyll v4.2.0</generator>
+    
+      <item>
+        <title>What is NtPssCaptureVaSpaceBulk</title>
+        <description>&lt;h2 id=&quot;the-api&quot;&gt;The API&lt;/h2&gt;
+&lt;p&gt;Just a quick post about something I found quite interesting. In Windows 10 version 2004+ (according to &lt;a href=&quot;https://j00ru.vexillium.org/syscalls/nt/64/&quot;&gt;this&lt;/a&gt;) there is a new system call which caught my attention: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtPssCaptureVaSpaceBulk&lt;/code&gt;.
+Specifically the caputing bluk referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsProcessType&lt;/code&gt; type as the first parameter, so I looked at the prototype of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtQueryVirtualMemory&lt;/code&gt; and went from there.
+My Google searching skills discovered that there is no offical prototype for this function, and so my final definition looks like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;NTSTATUS&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;NtPssCaptureVaSpaceBulk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HANDLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProcessHandle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;PVOID&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BaseAddress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;PBULK_MEMORY_INFORMATION&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MemoryInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;SIZE_T&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Length&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
+        &lt;span class=&quot;n&quot;&gt;PSIZE_T&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ReturnLength&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;br /&gt;
+The structure of BULK_MEMORY_INFORMATION is:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;k&quot;&gt;typedef&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;struct&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;_BULK_MEMORY_INFORMATION&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;ULONG&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;QueryFlags&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;ULONG&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;NumberOfEntries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;PVOID&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MaxUserAddress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;BYTE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Reserved&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x18&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;PVOID&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;LowestAddressFound&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;BYTE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;Reserved2&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mh&quot;&gt;0x10&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+    &lt;span class=&quot;n&quot;&gt;MEMORY_BASIC_INFORMATION&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;MemoryInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;];&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;BULK_MEMORY_INFORMATION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PBULK_MEMORY_INFORMATION&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;br /&gt;
+As a side note: When creating this structure definition I remembered seeing similar Windows structs which has arrays as the last element but had it defined as a 1-length based, looking into this I found &lt;a href=&quot;https://devblogs.microsoft.com/oldnewthing/20040826-00/?p=38043&quot;&gt;this&lt;/a&gt; post by Raymond Chen explaining why this is the case.&lt;/p&gt;
+
+&lt;p&gt;The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;QueryFlags&lt;/code&gt; member does not seem to be used except for being bitwise anded with 0xFFFFFFFC so only 1, 2, and 3 are valid. Again these are currently not used to control anything, but needs to be set or you’ll get STATUS_NOT_SUPPORTED.
+The main logic then follows which involves attaching to the provided process handle, re-calling itself in with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Zw&lt;/code&gt; variant of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PssCaptureVaSpaceBulk&lt;/code&gt;, and then preforming a loop of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtQueryVirtualMemory&lt;/code&gt;. In the past, looping &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;VirtualQuery(Ex)&lt;/code&gt; is essentially what developers had to do to query the memory of a process. That code would look something like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;MEMORY_BASIC_INFORMATION&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;PVOID&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pMem&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;NULL&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;VirtualQueryEx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetCurrentProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pMem&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;memInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;memInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;==&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;sizeof&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;memInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BYTE&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;*&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pMem&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;RegionSize&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Region: %p&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;memInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BaseAddress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;br /&gt;
+But now you can do something like this:&lt;/p&gt;
+
+&lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;SIZE_T&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nReturn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;SIZE_T&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nHeap&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;PBULK_MEMORY_INFORMATION&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HeapAlloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetProcessHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HEAP_ZERO_MEMORY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;QueryFlags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NtPssCaptureVaSpaceBulk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetCurrentProcess&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;amp;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;nReturn&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;HeapFree&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetProcessHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;nHeap&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HeapAlloc&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;GetProcessHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(),&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;HEAP_ZERO_MEMORY&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;nHeap&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;QueryFlags&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mh&quot;&gt;0x1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;kt&quot;&gt;size_t&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;&amp;lt;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;NumberOfEntries&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;;&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;++&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;n&quot;&gt;printf&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Mem: %p&lt;/span&gt;&lt;span class=&quot;se&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pBulk&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;-&amp;gt;&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MemoryInfo&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;i&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;].&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;BaseAddress&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;);&lt;/span&gt;
+&lt;span class=&quot;p&quot;&gt;}&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/figure&gt;
+
+&lt;p&gt;&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Is it more complicated? Yes. Why use it? I’m not sure, but maybe in the future the query flags will be able to gather different information.
+For now it is simply appears to be a redundent way to capture the entire virtual address space of a process.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 14 May 2021 16:51:46 -0700</pubDate>
+        <link>/blog/post/2021/05/14/post8.html</link>
+        <guid isPermaLink="true">/blog/post/2021/05/14/post8.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>The Win32k Import Mystery</title>
+        <description>&lt;h2 id=&quot;the-crash&quot;&gt;The Crash&lt;/h2&gt;
+&lt;p&gt;This all began when I was playing around with the PE file format and ended up tinkering with the loading process of drivers. Upon loading a particularly simple driver the OS crashed with the following error:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P7-Image1.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The stack clearly shows the bugcheck occuring within the driver loading process.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P7-Image2.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;I instantly suspected that the issue was with the imports as the driver I loaded only imported functions from Win32k.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P7-Image3.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;analysis&quot;&gt;Analysis&lt;/h2&gt;
+&lt;p&gt;Peering through the callstack functions I found that MiResolveImageReferences appeared to be the one with the logic I was interested in. To summerize the function:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1.&lt;/code&gt; Uses &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RtlImageDirectoryEntryToData&lt;/code&gt; to find the import directory (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IMAGE_DIRECTORY_ENTRY_IMPORT&lt;/code&gt;) of the loading driver PE&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2.&lt;/code&gt; Finds first module to resolve addresses from. In this case it is Win32k.sys&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3.&lt;/code&gt; Walks the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsLoadedModuleList&lt;/code&gt; looking for the module using &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;RtlEqualUnicodeString&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;4.&lt;/code&gt; Once found, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiSessionReferenceImage&lt;/code&gt; is called with the the module (Win32k) address as its only argument&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;5.&lt;/code&gt; &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiSessionReferenceImage&lt;/code&gt; immediately calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiSessionLookupImage&lt;/code&gt; and passes the address&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;6.&lt;/code&gt; Inside &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiSessionLookupImage&lt;/code&gt; the current process’ &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EPROCESS&lt;/code&gt; structure is derferenced, followed by the Session memeber&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;7.&lt;/code&gt; In this case, the Session member is null&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;8.&lt;/code&gt; There is no check. The Session member is derefereced (+0x58) and the system crashes&lt;/p&gt;
+
+&lt;p&gt;While testing other drivers, I found that the Session member always appears to be null as the loading context takes place in the System process. However, while other drivers do trigger &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiResolveImageReferences&lt;/code&gt;, they never reach &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiSessionReferenceImage&lt;/code&gt;. That is until I looked at drivers loaded at boot time. The inital loaded of the Win32k* drivers do reach &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MiSessionReferenceImage&lt;/code&gt;, however they have a valid Session member in thier &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;EPROCESS&lt;/code&gt;. This appears to be due to the fact that they are loaded by csrss.exe and not the actual system (PID 4) process.&lt;/p&gt;
+
+&lt;h2 id=&quot;further-information&quot;&gt;Further Information&lt;/h2&gt;
+
+&lt;p&gt;In the end, I could’ve learned all this from a StackOverflow &lt;a href=&quot;https://stackoverflow.com/questions/22557832/reach-kernel-session-space-from-kernel-driver&quot;&gt;anwser&lt;/a&gt; which explains the results I was seeing.
+In addition, the csrss process loads the Win32k* drivers in the current session. The system process is not part of that session. The API called is not &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtLoadDriver&lt;/code&gt;, but rather &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtSetSystemInformation&lt;/code&gt; using a special infromation class seen &lt;a href=&quot;https://www.geoffchappell.com/studies/windows/km/ntoskrnl/api/ex/sysinfo/set.htm&quot;&gt;here&lt;/a&gt;.
+With this information, it appears that drivers, at least those loaded via &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtLoadDriver&lt;/code&gt;, were never designed to import (in PE loader terms) functions from Win32k. Perhaps in past Windows versions it was possible.
+Another mystery solved?&lt;/p&gt;
+
+</description>
+        <pubDate>Thu, 12 Nov 2020 15:51:46 -0800</pubDate>
+        <link>/blog/post/2020/11/12/post7.html</link>
+        <guid isPermaLink="true">/blog/post/2020/11/12/post7.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>When Downloads Lead to LPE</title>
+        <description>&lt;h2 id=&quot;observations&quot;&gt;Observations&lt;/h2&gt;
+&lt;p&gt;In the world of privlige escalation, 3rd party elevated service programs are espically interesting to look at. One such program is Sophos’ &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HitmanPro.Alert (HMPA)&lt;/code&gt;.
+This program is designed to work with an additional AV product to provide “advanced” detection and prevention capabilities against malware and exploits.&lt;/p&gt;
+
+&lt;p&gt;However, this HMPA became interesting when I observed this message in my kernel debugger:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P6-Image1.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Just from this message there are a couple of issues I had to research. Are downloads really over HTTP? What does an update look like (full exe or just dll plugin)? Is the directory really a low privileged controlled directory?
+Using Wireshark I was able to identify that the downloads were really HTTP (they use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;URLDownloadToFile&lt;/code&gt;). Secondly, using a proxy I was able to get a file to appear in user’s temp directory. The “update” is just the full hmpalert.exe (yes, the one that is downloaded when you first install). Depending on which flag was used in the command line &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/service&lt;/code&gt; for the service, &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/tray&lt;/code&gt; for the tray icon and user interactive version, etc… But they are all the same executable.&lt;/p&gt;
+
+&lt;p&gt;After fiddling with the proxy server, I discovered the service will execute whatever file you give it, as long as it is digitally signed. It’s important to note that ANY signer is accepted. This means that anyone with a couple hundered bucks and a “valid” company someone could spoof updates. The only issue is that update checks only happen on startup and ~60 minutes.
+While the possiblity of RCE is interesting, I was looking for LPE and discovered something else. The “Scan” feature of HMPA actually donwloads HitmanPro (not Alert) from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;http://get.hitmanpro.com&lt;/code&gt; which could also be spoofed. This however, can be triggerd at any time because the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/tray&lt;/code&gt; instance of HMPA listens for window messages.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P6-Image2.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The actual communication with the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/service&lt;/code&gt; instance takes place over named pipes, but simply broadcasting to all windows with &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-sendmessagea&quot;&gt;SendMessage&lt;/a&gt; with the proper Msg and Param allows for any user to trigger a download and run (under &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SYSTEM&lt;/code&gt; user) of the scanner.
+Because the program is downloaded to the current user’s temp directory (like the update) I figured DLL hijacking would work. However, the scanner program by Sophos was very careful to only load libraries from &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;System32&lt;/code&gt;. Everything then changed when I realized that the downloading of the scanner took place in the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/tray&lt;/code&gt; instance which meant that a local proxy could work to spoof the downloads.
+Using &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/api/wininet/nf-wininet-internetsetoptiona&quot;&gt;InternetSetOption&lt;/a&gt; with approprite flags, a user can set the global proxy which applies to all processes running as that user (so not &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SYSTEM&lt;/code&gt; processes).&lt;/p&gt;
+
+&lt;h2 id=&quot;results-and-fix&quot;&gt;Results and Fix&lt;/h2&gt;
+&lt;p&gt;In the end, the PoC I sent to Sophos did the following:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1.&lt;/code&gt; Clears download cache&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2.&lt;/code&gt; Starts server and sets global proxy&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3.&lt;/code&gt; Broadcast’s scan message to all windows&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;4.&lt;/code&gt; Feeds cmd.exe (or any signed binary) to client&lt;/p&gt;
+
+&lt;p&gt;The client &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/tray&lt;/code&gt; then notifys the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;/service&lt;/code&gt; which executes as SYSTEM the signed binary. Because any signed binary is allowed, a DLL hijacking, or simply getting a certificate could led to LPE for custom code.
+I worked with Sohpos’ PSIRT to fix the issue. They published an advisory which can be found &lt;a href=&quot;https://community.sophos.com/kb/en-us/135259&quot;&gt;here&lt;/a&gt;.
+In addition, I’ve uploaded the PoC code which can be downloaded &lt;a href=&quot;https://github.com/DownWithUp/CVE-Stockpile&quot;&gt;here&lt;/a&gt;. To my knowledge Sophos fixed the problem by only executing images signed by their certificate.&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 25 Mar 2020 16:51:46 -0700</pubDate>
+        <link>/blog/post/2020/03/25/post6.html</link>
+        <guid isPermaLink="true">/blog/post/2020/03/25/post6.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>Creating Fake Drivers</title>
+        <description>&lt;h2 id=&quot;research&quot;&gt;Research&lt;/h2&gt;
+&lt;p&gt;Drivers commanly use IOCTLs for communication from user and kernel mode, but what really goes on behind the scene. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DeviceIoControl&lt;/code&gt; is the API responsible for sending an &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IRP_MJ_DEVICE_CONTROL&lt;/code&gt; request (along with an IOCTL and buffers of data) to a driver.
+The driver specifies the address of the funciton that then handles these requests. This is done through the array &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DRIVER_OBJECT.MajorFunction[]&lt;/code&gt;. Continuing to trace back, the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DRIVER_OBJECT&lt;/code&gt; comes from the DriverEntry which is the entry point on a WDM driver. It’s clear that the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DRIVER_OBJECT&lt;/code&gt; needed for IOCTL communication comes from the kerenl, but where?
+Following at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtLoadDriver&lt;/code&gt; eventually leads to IopLoadDriver which calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ObCreateObject&lt;/code&gt; with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IoDriverObjectType&lt;/code&gt; as the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;OBJECT_TYPE&lt;/code&gt;. It’s worth noting that driver objects can be viewed in the NT object manager under the “Driver” subdirectory with tools such as &lt;a href=&quot;https://github.com/hfiref0x/WinObjEx64&quot;&gt;WinObjEx&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ObCreateObject&lt;/code&gt; with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IoDriverObjectType&lt;/code&gt; allows us to create our own driver object. To ensure the object survives and is not deleted you need to reference the object. For example you can use &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ObReferenceObjectByPointer&lt;/code&gt; or in the object attributes pass &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;OBJ_PERMANENT&lt;/code&gt; which will start the reference count at 1.
+It is then necessary to call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ObInsertObject&lt;/code&gt; in order to add the object to the system. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ObInsertObject&lt;/code&gt; returns a handle, which can be closed as it does not affect whether the object will be deleted or not. Next, there are several members of the driver that we need to modify, the first being the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MajorFunction&lt;/code&gt; member which points to the function(s) that will handle IOCTLs. Secondly, the Flags member needs to be specifically set with the type of IO transfers that the driver object will use. Finally, the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;FastIoDispatch&lt;/code&gt; member must be set to NULL (or could be a valid handler) so the kernel won’t try and direct functions to it. All other members are optional.
+An example of a newly created driver object:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P5-Image1.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;h2 id=&quot;purpose&quot;&gt;Purpose&lt;/h2&gt;
+&lt;p&gt;With the ability to create a fake driver and device, a executable kernel pool could communicate with and a user mode process using IOCTLs. In addition, I belive it’s good to understand that not every driver is really tied to a physical file. Another aspect is that a valid driver can create multiple device objects, or that a device object could actually use the driver object of another driver. This could lead to a “hijacking” of driver objects. In any case, I’ve created a PoC for the method above which can be downloaded &lt;a href=&quot;https://github.com/DownWithUp/FakeDriverPoC&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Fri, 24 Jan 2020 15:51:46 -0800</pubDate>
+        <link>/blog/post/2020/01/24/post5.html</link>
+        <guid isPermaLink="true">/blog/post/2020/01/24/post5.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>Qualcomm Service Vulnerability</title>
+        <description>&lt;h2 id=&quot;discovery&quot;&gt;Discovery&lt;/h2&gt;
+&lt;p&gt;Qualcomm has a serivce program named AdminService.exe which runs on Windows machines with the Qualcomm Atheros QCA61x4 Bluethooth device. Other devices possibly have this service. You can download the entire service and driver package &lt;a href=&quot;https://www.ath-drivers.eu/atheros-wireless-drivers.html&quot;&gt;here&lt;/a&gt;. In a real world situation, the package would be installed by Windows.&lt;/p&gt;
+
+&lt;p&gt;So, what is wrong with this AdminService? Well, services can receive control codes from other applications. This is done with the &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/api/winsvc/nf-winsvc-controlservice&quot;&gt;ControlService&lt;/a&gt; API. Looking at the MSDN documentation the control codes after 128 (up to 255) are used by 3rd party services for their own purposes. This is what originally piqued my interest. I figured that custom control codes might preform privileged operations and these could possibly be exploited.
+By chance, AdminService.exe (service name AtherosSvc) handles a bunch of custom control codes. I went down each control code case until I found code 133 (0x85). Like many of the other codes, 133 posts a message to another thread. The message code for 133 is 24162 (0x5E62). This case in the thread’s &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;GetMessage&lt;/code&gt; loop calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;OutputDebugString&lt;/code&gt; with “Enter case CUSTOM_THREAD_EVENT_REG_MODIFY”.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P4-Image1.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;The next call to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;KeyParsingAndOperations&lt;/code&gt; is where the vulnerabiltiy lies. Inside, AdminService.exe looks for a file at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;C:\ProgramData\Atheros\AtherosServiceConfig.ini&lt;/code&gt;. This file is not present after a default installation. If the file is present, then there is a series of messy parsing compares and calls to &lt;a href=&quot;https://docs.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getprivateprofilestringw&quot;&gt;GetPrivateProfileStringW&lt;/a&gt; execute. If you create a file and carefully debug the service you can see what the service is looking for in the configuration data. Something like the image below demonstrates how the file can be used.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P4-Image2.png&quot; alt=&quot;IMG2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;regOpType&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt; = Delete a key&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2&lt;/code&gt; = Open a key, no writing, and handle never closed&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3&lt;/code&gt; = Create a new key&lt;/p&gt;
+
+&lt;p&gt;For &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;regType&lt;/code&gt;:&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;1&lt;/code&gt; = REG_SZ&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;2&lt;/code&gt; = REG_EXPAND_SZ&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;3&lt;/code&gt; = REG_BINARY&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;4&lt;/code&gt; = REG_DWORD&lt;/p&gt;
+
+&lt;p&gt;The other values in the config file have pretty obvious meanings.&lt;/p&gt;
+
+&lt;h2 id=&quot;impact&quot;&gt;Impact&lt;/h2&gt;
+&lt;p&gt;Now that there is a way to create any key, with any data, anywhere, exploiting for elevating privileges is easy. An example would be something like the MSI Server at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\msiserver&lt;/code&gt;. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ImagePath&lt;/code&gt; key could be replaced with something malicious, and the installer can be triggered by running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;msiexec.exe /q /i 'random.msi'&lt;/code&gt;. The only problem is you won’t see GUI elements because of &lt;a href=&quot;http://securityinternals.blogspot.com/2014/02/windows-session-0-isolation.html&quot;&gt;Session 0 Isolation&lt;/a&gt;
+If you need GUI interaction I’d suggest looking at maybe injecting code into a different SYSTEM process but in session 1 (winlogon.exe for example).&lt;/p&gt;
+
+&lt;h2 id=&quot;report-and-response&quot;&gt;Report and Response&lt;/h2&gt;
+&lt;p&gt;I reported this issue Qualcomm on April 16th of 2019. It was publicly disclosed on October 7th in a &lt;a href=&quot;https://www.qualcomm.com/company/product-security/bulletins/october-2019-bulletin&quot;&gt;Qualcomm Security Bulletin&lt;/a&gt;. It was assigned CVE-2019-10617.
+The PoC code is available on my github &lt;a href=&quot;https://github.com/DownWithUp/CVE-Stockpile/blob/master/CVE-2019-10617.c&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h2 id=&quot;additional-information&quot;&gt;Additional Information&lt;/h2&gt;
+&lt;p&gt;A few days ago I was looking at my twitter feed when I saw a write-up by &lt;a href=&quot;https://twitter.com/monoxgas&quot;&gt;@monoxgas&lt;/a&gt; on this exact vulnerability. Turns out, he had reported the issue last month, and now that the disclosure was public, published his work in an excellent post which can be found &lt;a href=&quot;https://silentbreaksecurity.com/cve-2019-10617&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Wed, 16 Oct 2019 16:51:46 -0700</pubDate>
+        <link>/blog/post/2019/10/16/post4.html</link>
+        <guid isPermaLink="true">/blog/post/2019/10/16/post4.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>Vulnerabilities In Similar Software</title>
+        <description>&lt;p&gt;SoftEther VPN is a VPN program by the university of Tsukba in Japan. Users can use the client program to connect to servers, or use theserver program to host servers. &lt;a href=&quot;https://www.softether-download.com/en.aspx&quot;&gt;The Server Manager&lt;/a&gt; for Windows used a driver named See.sys for low level operations. This driver (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;See.sys&lt;/code&gt;) was actually part of SoftEther’s github repository which can be found &lt;a href=&quot;https://github.com/SoftEtherVPN/SoftEtherVPN/tree/master/src/See&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;The driver is based off the old WinPcap driver which had an issue (CVE-2007-3681) with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;malfourmed IRP Parameters&lt;/code&gt;. Here are &lt;a href=&quot;https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2007-3681&quot;&gt;More Details&lt;/a&gt;.
+When a user program sends an IOCTL to a driver it is packaged, along with buffers, sizes, and other information inside of an IRP. IRPs have a field that named UserBuffer. This is the output buffer in a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DeviceIoControl&lt;/code&gt; call. When a device is created with &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DO_DIRECT_IO&lt;/code&gt; (as this one does) there is no &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Irp-&amp;gt;AssociatedIrp.SystemBuffer&lt;/code&gt;, so output data is usually copied to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;UserBuffer&lt;/code&gt;.
+The issue is that no checks are preformed on the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;UserBuffer&lt;/code&gt; by the IO Manager. Obviously, a &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ProbeForWrite&lt;/code&gt; could be used on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IRP.UserBuffer&lt;/code&gt;, but the programmers of WinPcap didn’t. The WinPcap driver had this issue fixed quite a while ago, but the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;See.sys&lt;/code&gt; driver, based on the WinPcap driver, was forgotten.&lt;/p&gt;
+
+&lt;p&gt;In &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;See.sys&lt;/code&gt;, there is an IOCTL (&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x1CF7&lt;/code&gt;) which calls memmove with a destination on &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;IRP.UserBuffer&lt;/code&gt; (rdi+70H) The source ends up being the the wide string “SEEXXXXXXXXXX” where the X’s are digits associated with the event name (according to the source) The size is a constant &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x1A&lt;/code&gt;.
+&lt;img src=&quot;/assets/img/P3-Image1.png&quot; alt=&quot;IMG1&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;While the data isn’t fully controllable, the destination is. This is the critical issue in this driver. Because you can write this string anywhere in kernel memory, it is possible to overwrite some bit fields and gain elevated priviliges. In my PoC, the call writes the string to the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;K_USER_SHARED_DATA&lt;/code&gt; memory region at offset &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;+0x80&lt;/code&gt;.
+&lt;img src=&quot;/assets/img/P3-Image2.png&quot; alt=&quot;IMG2&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;This issue was reported and is fixed in the new versions (4.3+). &lt;a href=&quot;https://www.softether.org/9-about/News/900-SEVPN201901&quot;&gt;SoftEther Notice&lt;/a&gt;. Special thanks to Daiyuu Nobori of the SoftEther team. It was assigned CVE-2019-11868.
+The PoC code is available on my github &lt;a href=&quot;https://github.com/DownWithUp/CVE-Stockpile/blob/master/CVE-2019-11868.c&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 19 Mar 2019 16:51:46 -0700</pubDate>
+        <link>/blog/post/2019/03/19/post3.html</link>
+        <guid isPermaLink="true">/blog/post/2019/03/19/post3.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>The Search For Drivers</title>
+        <description>&lt;p&gt;Lately I’ve been digging into driver exploitation in Windows. One of the hardest parts is actually finding the drivers to decompile, debug, and experiment with. This led me to look for easy to find drivers. I found &lt;a href=&quot;https://www.drivereasy.com&quot;&gt;Driver Easy&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;Driver Easy seems to have a large database of drivers, and I thought I could access them for experimentation purposes. I discovered that the files are retrieved by HTTP requests but the data is encrypted. Coincidentally the program is a .NET and therefore extremely easy to open up and peek at the inner workings.&lt;/p&gt;
+
+&lt;p&gt;The encryption is a combination of: gzip compression, base64, and xor flipping. That is the encryption order, so naturally the decryption is the opposite. For the xor step, they would of course use a long randomly generated key, right? (They are a Gold partner with Microsoft for application development. &lt;a href=&quot;https://www.microsoft.com/en-us/solution-providers/partnerdetails/easeware_fa9bb6d5-d5b8-476c-b1c9-ba5ee90dee56/4c973ecb-b0ea-4ead-acc5-f5eabbaf8c9b&quot;&gt;Link&lt;/a&gt;)&lt;/p&gt;
+
+&lt;p&gt;How about: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;39096799Easy&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Yes, that is the xor key used for the traffic encryption. With the traffic decrypted, I was able to see that communication was done using XML. Encrypting and sending an XML file like &lt;a href=&quot;https://gist.github.com/DownWithUp/8d689f88e0c40e75119105fb1f36776c&quot;&gt;this&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;MachineId&lt;/code&gt; can be anything.
+After you decrypt the response, it will look like &lt;a href=&quot;https://gist.github.com/DownWithUp/b44465a468e6f9a9c17bded466ef1588&quot;&gt;this&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;As you can see, you need to know the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Hardware Ids&lt;/code&gt; for the drivers you are looking for. Unfortunately brute-forcing, or even educated guessing would be extremely ineffective as vendors can name them, and guidelines are very bare.&lt;/p&gt;
+
+&lt;p&gt;In conclusion, my attempts to gain a large amount of possibly vulnerable drivers failed. However, I did practice my Python skills. Hopefully in the future I’ll look into more of these driver assistant programs that the internet seems to be full of.&lt;/p&gt;
+
+&lt;p&gt;&lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Note:&lt;/code&gt; In &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Easware.Driver.Core&lt;/code&gt;, a module loaded by the DriverEasy.exe assembly there is a Class of functions called &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;DriverUpload&lt;/code&gt; Sadly this function isn’t used in the application, and the upload server, found in the program, always returns 403 – Forbidden. However, at one time, Driver Easy may have been uploading users drivers to build their own database, imagine the security problems. This is only a theory though.
+&lt;a href=&quot;https://github.com/DownWithUp/Driver-Easy-Research&quot;&gt;Scripts and repository&lt;/a&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Tue, 18 Dec 2018 15:51:46 -0800</pubDate>
+        <link>/blog/post/2018/12/18/post2.html</link>
+        <guid isPermaLink="true">/blog/post/2018/12/18/post2.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+      <item>
+        <title>Spoofing the Windows 10's Task Manager</title>
+        <description>&lt;p&gt;Observant Windows 10 users will notice that some of the new metro apps can only run as a single instance. Examples include Settings and Task Manager. Attempting to open another instance of these processes will result in the already opened one being focused.&lt;/p&gt;
+
+&lt;p&gt;I focused on Task Manager. Initially, I began looking for calls to either mutexes or semaphores, which can (if a name argument is passed) be stored in the Windows’s object manager. Calls to create a mutex or semaphore with a name that already exists will return &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ERROR_ALREADY_EXISTS&lt;/code&gt;. In one such instance &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CreateMutexW&lt;/code&gt; used the wide string: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Local\\TM.750ce7b0-e5fd-454f-9fad-2f66513dfa1bTerminal&lt;/code&gt; Having another process create a mutex with this same name will result in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ERROR_ALREADY_EXISTS&lt;/code&gt; being returned whenever the second process calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CreateMutexW&lt;/code&gt;. The second process, in this case, would be Task Manager&lt;/p&gt;
+
+&lt;p&gt;This doesn’t successfully spoof Task Manager, however, as it has more startup checks. After receiving ERROR_ALREADY_EXISTS, Task Manager checks FindWindow for a class “Task Manager” In order to spoof this you need to call CreateWindowEx and pass lpClassName a string of: “TaskManagerWindow” and pass lpWindowName a string of: “Task Manager”&lt;/p&gt;
+
+&lt;p&gt;Finally, after Task Manager finds the duplicate Window, it will call &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SendMessageTimeoutW&lt;/code&gt; with msg parameter set to: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x4D3&lt;/code&gt;. The result of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;SendMessageTimeoutW&lt;/code&gt; is then compared to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x4D3&lt;/code&gt;.
+In order for this compare to evaluate to true, you need to specify a place in your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;WNDPROC&lt;/code&gt; (From &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;WNDCLASSEX&lt;/code&gt; in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CreateWindowEx&lt;/code&gt;) for a call to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ReplyMessage&lt;/code&gt; if wmsg, in your &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;WNDPROC&lt;/code&gt;, is equal to &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x4D3&lt;/code&gt;. &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ReplyMessage&lt;/code&gt; needs to be called with the same &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x4D3&lt;/code&gt;. If Task Manager receives &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;0x4D3&lt;/code&gt; as a reply, it will go down a series of procedures and terminate itself. Check out the &lt;a href=&quot;https://github.com/DownWithUp/Spoof-Task-Manager&quot;&gt;Github PoC Code&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;/assets/img/P1-Image1.gif&quot; alt=&quot;GIF1&quot; /&gt;&lt;/p&gt;
+
+</description>
+        <pubDate>Sat, 03 Mar 2018 15:51:46 -0800</pubDate>
+        <link>/blog/post/2018/03/03/post1.html</link>
+        <guid isPermaLink="true">/blog/post/2018/03/03/post1.html</guid>
+        
+        
+        <category>blog</category>
+        
+        <category>post</category>
+        
+      </item>
+    
+  </channel>
+</rss>
