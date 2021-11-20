@@ -7,7 +7,7 @@ categories: blog post
 
 ## The API
 Just a quick post about something I found quite interesting. In Windows 10 version 2004+ (according to [this][syscalls]) there is a new system call which caught my attention: `NtPssCaptureVaSpaceBulk`.
-Specifically the caputing bluk referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the `PsProcessType` type as the first parameter, so I looked at the prototype of `NtQueryVirtualMemory` and went from there.
+Specifically the caputing "bulk" referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the `PsProcessType` type as the first parameter, so I looked at the prototype of `NtQueryVirtualMemory` and went from there.
 My Google searching skills discovered that there is no offical prototype for this function, and so my final definition looks like this:
 
 {% highlight C %}
