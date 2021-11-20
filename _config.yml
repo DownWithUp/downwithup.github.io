@@ -22,7 +22,7 @@ title: "Main Page"
 name: "DownWithUp's Github Website"
 email: downwithup@protonmail.com
 #description: #>- # this means to ignore newlines until "baseurl:"
-description: "Github hosted website for DownWithUp's random posts about windows vulnerability/security research"
+description: "Github hosted website for DownWithUp's random posts about windows vulnerability, security, and reversing research"
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 twitter_username: DownWithUpSec
