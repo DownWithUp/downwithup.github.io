@@ -32,6 +32,11 @@ article h1 a.anchor {
 	color: #2aa198;
 }
 
+hr.cve_hr {
+	border-color: #e25113;
+}
+
+
 blockquote {
 	border-color: #e25113;
 }

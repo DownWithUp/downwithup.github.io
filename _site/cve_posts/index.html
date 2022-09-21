@@ -1,0 +1,334 @@
+<html>
+	<link href="https://fonts.googleapis.com/css?family=Oxygen:300,400" rel="stylesheet">
+    <link href="/assets/css/style.css" rel="stylesheet" />
+    <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+	<link rel="icon" href="./favicon.png" type="image/x-icon" />
+	<head>
+		<title>DownWithUp's Github Website</title>
+	</head>
+	<h1>CVE Security Posts</h1>
+	<h4>The discoveries listed here are provided without any warranty</h4>
+    <hr class="cve_hr">
+
+	<div class="display">
+        <p class="p_display" id="p_display24">
+            About CVE-2020-9540 | Sophos HitmanPro.Alert's 3.7.12 service insecure downloads: <br>
+            HitmanPro.Alert, versions 3.7.12 and earlier, download files over http as a normal user, then are run as SYSTEM. The connection is proxyable.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High<br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use HTTPS or download via the privileged process which would not allow normal users to proxy.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Reported to Sophos's bug bounty and coordinated public disclosure. Future releases are patched.<br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display23">
+            About CVE-2020-8508 | Norman Malware Cleaner's v2.08.08 nsak64.sys arbitrary address calls: <br>
+            Norman Malware Cleaner, versions 2.08.08 and possibly others, load nsak64.sys which unprivileged users can abuse to call arbitrary kernel functions. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High<br>
+            Possible Solution(s) / Fixe(s): <br>
+            Be careful when passing function pointers between user and kernel mode.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Norman Safeground AS is no longer in business, and therefore the product is no longer supported.<br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display22">
+            About CVE-2019-0142 | Intel's Ethernet 700 Series Controller software's Ilp60x64.sys arbitrary write: <br>
+            Intel's software for their 700 series ethernet controllers utilizes Ilp60x64.sys, which before package version 24.0, allowed the user to write arbitrary data to kernel mode addresses.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Be careful when dereferencing addresses. Compare with MmHighestUserAddress or use probing APIs.<br>
+            Exploit Code / Vulnerable Software Source(s) [Public] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Reported to Intel's bug bounty and coordinated public disclosure. Product was patched in INTEL-SA-00255.<br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display21">
+            About CVE-2019-8007 | Adobe's armsvc.exe v1.824.31.1644 arbitrary file deletion: <br>
+            Adobe's armsvc.exe, versions 1.824.31.1644 or older, runs as a system service and can be manipulated to delete arbitrary files regardless of access controls. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 3.8 Low <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Be careful when high privilege programs interact with low privilege writable locations. <br>
+            Exploit Code / Vulnerable Software Source(s) [Private] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Reported to Adobes's PSIRT and coordinated public disclosure. Product was patched in APSB19-41.<br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display20">
+            About CVE-2019-10617 | Lenovo's PLHotkeyService.exe v1.2.0.8 DLL hijacking: <br>
+            PLHotkeyService.exe, versions 1.2.0.8 or older, runs as a system service and is vulnerable to a DLL hijacking attack which results in privilege escalation. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Do not run system service programs from low privileged writable locations. Use strict DLL paths. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Reported to Lenovo's PSIRT and coordinated public disclosure. Product is being phased out. No patch released. <br>
+        </p>
+        <hr class="cve_hr">
+        
+        <p class="p_display" id="p_display19">
+            About CVE-2019-6165 | Qualcomm Atheros QCA61x4 devices v10.0.10011.16384 AdminService.exe arbitrary registry edits <br>
+            AdminService.exe, included in the driver installer package for Qualcomm Atheros QCA61x4 devices, versions 10.0.10011.16384 or older, allows an unprivileged user to specify normally restricted registry keys to create or delete.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Do not read input files containing sensitive configuration information from low privileged write locations. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Reported to Qualcomm's PSIRT and coordinated public disclosure. Unknown if newer versions are still affected. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display18">
+            About CVE-2019-11868 | SoftEther VPN Server's See.sys v4.25 arbitrary write: <br>
+            See.sys, up to version 4.25, in SoftEther VPN Server, versions 4.29 or older, allows a user to call an IOCTL specifying any kernel address to which arbitrary bytes are written to.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use ProbeForRead and ProbeForWrite to validate addresses. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Worked with a developer of SoftEther to fix the issue and current versions are no longer affected. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display17">
+            About CVE-2019-11867 | Realtek NDIS driver rt640x64.sys v10.1.505.2015 null address denial of service: <br>
+            Realtek NDIS driver rt640x64.sys, file version 10.1.505.2015, fails to do any size checking on an input buffer from user space, which the driver assumes has a size greater than zero bytes.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 3.0 Low <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Always remember that pointers can be null. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile] : <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Failed to contact Realtek. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display16">
+            About CVE-2019-6494 | IObit Malware Fighter's v6.2 IMFForceDelete.sys arbitrary file deletion: <br>
+            IMFForceDelete.sys in IObit Malware Fighter 6.2 allows a low privileged user to send IOCTL 0x8016E000 along with a user defined string to a file which will be promptly deleted regardless of access controls. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 6.3 Medium <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Don't allow users to specify any file.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display15">
+            About CVE-2019-6493 | IObit Smart Defrag 6's SmartDefragDriver.sys v2.0 executable kernel pool leak: <br>
+            SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC0 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 3.0 Low <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Free any kerenl pools before functions finish.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display14">
+            About CVE-2019-6492 | IObit Smart Defrag 6's SmartDefragDriver.sys v2.0 executable kernel pool leak: <br>
+            SmartDefragDriver.sys (2.0) in IObit Smart Defrag 6 never frees an executable kernel pool that is allocated with user defined bytes and size when IOCTL 0x9C401CC4 is called. This kernel pointer can be leaked if the kernel pool becomes a "big" pool. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 3.0 Low <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Free any kerenl pools before functions finish.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display13">
+            About CVE-2018-20404 | VIA Technologies' SmartETK ETK_E900.sys v1.0.0.33 uncontrollable memmove denial of service: <br>
+            ETK_E900.sys version 1.0.0.33, a SmartETK driver for VIA Technologies EPIA-E900 system board, is vulnerable to denial of service attack via IOCTL 0x9C402048, which calls memmove and constantly fails on an arbitrary (uncontrollable) address, resulting in an eternal hang or a BSoD. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 6.7 Medium <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Check before calling memmove.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Unable to get past VIA Technologies support page. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display12">
+            About CVE-2018-19523 | DriverAgent's DrvAgent64.sys v1.0.0.1 pool corruption denial of service: <br>
+            DriverAgent 2.2015.7.14, which includes DrvAgent64.sys 1.0.0.1, allows a user to send an IOCTL (0x80002068) with a user defined buffer size. If the size of the buffer is less than 512 bytes, then a bad memset call will overwrite the next pool header if there is one adjacent to the user's buffer pool. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 6.7 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use dynamic size value in memset. Consider minimum values, as well as maximum.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting DriverAgent failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display11">
+            About CVE-2018-19522 | DriverAgent's DrvAgent64.sys v1.0.0.1 arbitrary WRMSR: <br>
+            DriverAgent 2.2015.7.14, which includes DrvAgent64.sys 1.0.0.1, allows a user to send an IOCTL (0x800020F4) with a buffer containing user defined content. The driver's subroutine will execute a wrmsr instruction with the user's buffer for partial input. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 6.7 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Prevent wrmsr from being accessed in from user mode.<br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting DriverAgent failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display10">
+            About CVE-2018-19087 | IObit Advanced Malware Fighter's v6.2 RegFilter.sys stack overflow: <br>
+            RegFilter.sys in IOBit Malware Fighter 6.2 is susceptible to a stack-based buffer overflow when an attacker uses IOCTL 0x8006E044 with a size larger than 8 bytes. This can lead to denial of service or code execution with root privileges.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use a fixed size for memory movement functions. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display9">
+            About CVE-2018-19086 | IObit Advanced Malware Fighter's v6.2 RegFilter.sys stack overflow: <br>
+            RegFilter.sys in IOBit Malware Fighter 6.2 is susceptible to a stack-based buffer overflow when an attacker uses IOCTL 0x8006E040 with a size larger than 8 bytes. This can lead to denial of service or code execution with root privileges.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use a fixed size for memory movement functions. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display8">
+            About CVE-2018-19085 | IObit Advanced Malware Fighter's v6.2 RegFilter.sys stack overflow: <br>
+            RegFilter.sys in IOBit Malware Fighter 6.2 is susceptible to a stack-based buffer overflow when an attacker uses IOCTL 0x8006E048 with a size larger than 8 bytes. This can lead to denial of service or code execution with root privileges.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use a fixed size for memory movement functions. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display7">
+            About CVE-2018-19084 | IObit Advanced Malware Fighter's v6.2 RegFilter.sys stack overflow: <br>
+            RegFilter.sys in IOBit Malware Fighter 6.2 is susceptible to a stack-based buffer overflow when an attacker uses IOCTL 0x8006E05C with a size larger than 8 bytes. This can lead to denial of service or code execution with root privileges.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use a fixed size for memory movement functions. <br>
+            Exploit Code / Vulnerable Software Source(s) [In Stockpile]: <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-Stockpile" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display6">
+            About CVE-2018-18714 | IObit Advanced Malware Fighter's v6.2 RegFilter.sys stack overflow: <br>
+            IOBit Advanced Malware Fighter (version 6.2, and possibly lower) contains RegFilter.sys which is vulnerable to a stack overflow attack when IOCTL 0x8006E010 is sent via DeviceIoControl with a user defined size. Return addresses in the stack can be overwritten and allow for code execution or a DoS.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use a fixed size for memory movement functions. <br>
+            Exploit Code / Vulnerable Software Source(s): <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-2018-18714" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display5">
+            About CVE-2018-18026 | IObit Advanced Malware Fighter's v6.2 IMFCameraProtect.sys stack overflow : <br>
+            IObit Advanced Malware Fighter (version 6.2, and possibly lower) contains IMFCameraProtect.sys which is vulnerable to a stack overflow attack when IOCTL 0x8018E000 is sent via DeviceIoControl with a user defined size. Return addresses in the stack can be overwritten and allow for code execution or a DoS.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 7.2 High <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Use a fixed size for memory movement functions. <br>
+            Exploit Code / Vulnerable Software Source(s): <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-2018-18026" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display4">
+            About CVE-2018-16713 | IObit Advanced SystemCare's Monitor_win10_x64.sys v1.2.0.5 arbitrary RDMSR: <br>
+            IObit Advanced SystemCare, which includes Monitor_win10_x64.sys or Monitor_win7_x64.sys, 1.2.0.5 (and possibly earlier versions) allows a user to send an IOCTL (0x9C402084) with a buffer containing user defined content. The driver's subroutine will execute a rdmsr instruction with the user's buffer for input, and provide output from the instruction.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 3.2 Low <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Prevent rdmsr from being accessed in from user mode. <br>
+            Exploit Code / Vulnerable Software Source(s): <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-2018-16713" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display3">
+            About CVE-2018-16712 | IObit Advanced SystemCare's Monitor_win10_x64.sys v1.2.0.5 arbitrary physical memory read: <br>
+            IObit Advanced SystemCare, which includes Monitor_win10_x64.sys or Monitor_win7_x64.sys, 1.2.0.5 (and possibly earlier versions) allows a user to send a specially crafted IOCTL 0x9C406104 to read physical memory.<br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 4.6 Medium <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Prevent MmMapIoSpace from being accessed in from user mode, or limit the address range which can be read.<br>
+            Exploit Code / Vulnerable Software Source(s): <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-2018-16712" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display2">
+            About CVE-2018-16711 | IObit Advanced SystemCare's Monitor_win10_x64.sys v1.2.0.5 arbitrary WRMSR:<br>
+            IObit Advanced SystemCare, which includes Monitor_win10_x64.sys or Monitor_win7_x64.sys, 1.2.0.5 (and possibly earlier versions) allows a user to send an IOCTL (0x9C402088) with a buffer containing user defined content. The driver's subroutine will execute a wrmsr instruction with the user's buffer for input. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 5.9 Medium <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Prevent wrmsr from being accessed in from user mode, or limit model specific register values that can be edited.<br>
+            Exploit Code / Vulnerable Software Source(s): <br>
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-2018-16711" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting IOBit Software failed. <br>
+        </p>
+        <hr class="cve_hr">
+
+        <p class="p_display" id="p_display1">
+            About CVE-2018-15499 | GEAR Software's GEARAspiWDM.sys v2.2.5.0 race condition denial of service: <br>
+            GEARAspiWDM.sys, version 2.2.5.0 (and possibly lower versions as well), is vulnerable to a race condition that allows an attack to cause a DoS with low OS privileges. Using IOCTL 0x222004 the driver makes multiple unchecked fetches into userland at a specified address. <br>
+            Security Risk Level: <br>
+            CVSS (v3.0) = 6.7 Medium <br>
+            Possible Solution(s) / Fixe(s): <br>
+            Add ProbeForRead/ProbeForWrite checks and use METHOD_BUFFERED for IO. <br>
+            Exploit Code / Vulnerable Software Source(s): 
+            <a target="_parent" href="https://github.com/DownWithUp/CVE-2018-15499" style="color: #42bcf4;">Github PoC Link</a><br>
+            Contacting GEAR software failed. <br>
+        </p>
+        <hr class="cve_hr">
+        
+
+
+	</div>
+	<script>
+
+		
+	
+	</script>
+</html>

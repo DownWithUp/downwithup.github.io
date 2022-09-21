@@ -21,7 +21,7 @@
 
   <header id="header">
     <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
-    <p>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</p>
+    <p></p>
   </header>
 
 
@@ -34,10 +34,9 @@
       <nav>
         <ul>
           <li><a href="/">Home</a></li>
-          <li><a href="/archives">Archive</a></li>
           <li><a href="/about">About</a></li>
           <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
-          <li><a href="/feed.xml">RSS Feed</a></li>
+          <li><a href="/cve_posts/index.html">CVEs</a></li>
         </ul>
       </nav>
     </div>
@@ -53,7 +52,7 @@
 
 	<div class="post-content"><h2 id="the-api">The API</h2>
 <p>Just a quick post about something I found quite interesting. In Windows 10 version 2004+ (according to <a href="https://j00ru.vexillium.org/syscalls/nt/64/">this</a>) there is a new system call which caught my attention: <code class="language-plaintext highlighter-rouge">NtPssCaptureVaSpaceBulk</code>.
-Specifically the caputing bluk referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the <code class="language-plaintext highlighter-rouge">PsProcessType</code> type as the first parameter, so I looked at the prototype of <code class="language-plaintext highlighter-rouge">NtQueryVirtualMemory</code> and went from there.
+Specifically the caputing “bulk” referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the <code class="language-plaintext highlighter-rouge">PsProcessType</code> type as the first parameter, so I looked at the prototype of <code class="language-plaintext highlighter-rouge">NtQueryVirtualMemory</code> and went from there.
 My Google searching skills discovered that there is no offical prototype for this function, and so my final definition looks like this:</p>
 
 <figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">NTSTATUS</span> <span class="nf">NtPssCaptureVaSpaceBulk</span><span class="p">(</span><span class="n">HANDLE</span> <span class="n">ProcessHandle</span><span class="p">,</span> 
@@ -126,7 +125,7 @@ For now it is simply appears to be a redundent way to capture the entire virtual
 
 
   <footer id="footer">
-    <p class="copyright">Copyright &copy; 2021 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+    <p class="copyright">Copyright &copy; 2022 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
   </footer>
 
 

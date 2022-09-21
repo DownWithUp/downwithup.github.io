@@ -2,18 +2,18 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Main Page</title>
-    <description>Github hosted website for DownWithUp's random posts about windows vulnerability/security research</description>
+    <description></description>
     <link>/</link>
     <atom:link href="/feed.xml" rel="self" type="application/rss+xml"/>
-    <pubDate>Fri, 20 Aug 2021 04:07:26 -0700</pubDate>
-    <lastBuildDate>Fri, 20 Aug 2021 04:07:26 -0700</lastBuildDate>
+    <pubDate>Tue, 20 Sep 2022 21:02:36 -0400</pubDate>
+    <lastBuildDate>Tue, 20 Sep 2022 21:02:36 -0400</lastBuildDate>
     <generator>Jekyll v4.2.0</generator>
     
       <item>
         <title>What is NtPssCaptureVaSpaceBulk</title>
         <description>&lt;h2 id=&quot;the-api&quot;&gt;The API&lt;/h2&gt;
 &lt;p&gt;Just a quick post about something I found quite interesting. In Windows 10 version 2004+ (according to &lt;a href=&quot;https://j00ru.vexillium.org/syscalls/nt/64/&quot;&gt;this&lt;/a&gt;) there is a new system call which caught my attention: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtPssCaptureVaSpaceBulk&lt;/code&gt;.
-Specifically the caputing bluk referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsProcessType&lt;/code&gt; type as the first parameter, so I looked at the prototype of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtQueryVirtualMemory&lt;/code&gt; and went from there.
+Specifically the caputing “bulk” referenced in the name made me think it could be useful. Looking at the API in the kernel, I quickly noticed several calls using the &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;PsProcessType&lt;/code&gt; type as the first parameter, so I looked at the prototype of &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;NtQueryVirtualMemory&lt;/code&gt; and went from there.
 My Google searching skills discovered that there is no offical prototype for this function, and so my final definition looks like this:&lt;/p&gt;
 
 &lt;figure class=&quot;highlight&quot;&gt;&lt;pre&gt;&lt;code class=&quot;language-c&quot; data-lang=&quot;c&quot;&gt;&lt;span class=&quot;n&quot;&gt;NTSTATUS&lt;/span&gt; &lt;span class=&quot;nf&quot;&gt;NtPssCaptureVaSpaceBulk&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;HANDLE&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;ProcessHandle&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; 
@@ -73,7 +73,7 @@ But now you can do something like this:&lt;/p&gt;
 For now it is simply appears to be a redundent way to capture the entire virtual address space of a process.&lt;/p&gt;
 
 </description>
-        <pubDate>Fri, 14 May 2021 16:51:46 -0700</pubDate>
+        <pubDate>Fri, 14 May 2021 19:51:46 -0400</pubDate>
         <link>/blog/post/2021/05/14/post8.html</link>
         <guid isPermaLink="true">/blog/post/2021/05/14/post8.html</guid>
         
@@ -128,7 +128,7 @@ With this information, it appears that drivers, at least those loaded via &lt;co
 Another mystery solved?&lt;/p&gt;
 
 </description>
-        <pubDate>Thu, 12 Nov 2020 15:51:46 -0800</pubDate>
+        <pubDate>Thu, 12 Nov 2020 18:51:46 -0500</pubDate>
         <link>/blog/post/2020/11/12/post7.html</link>
         <guid isPermaLink="true">/blog/post/2020/11/12/post7.html</guid>
         
@@ -177,7 +177,7 @@ I worked with Sohpos’ PSIRT to fix the issue. They published an advisory which
 In addition, I’ve uploaded the PoC code which can be downloaded &lt;a href=&quot;https://github.com/DownWithUp/CVE-Stockpile&quot;&gt;here&lt;/a&gt;. To my knowledge Sophos fixed the problem by only executing images signed by their certificate.&lt;/p&gt;
 
 </description>
-        <pubDate>Wed, 25 Mar 2020 16:51:46 -0700</pubDate>
+        <pubDate>Wed, 25 Mar 2020 19:51:46 -0400</pubDate>
         <link>/blog/post/2020/03/25/post6.html</link>
         <guid isPermaLink="true">/blog/post/2020/03/25/post6.html</guid>
         
@@ -205,7 +205,7 @@ An example of a newly created driver object:&lt;/p&gt;
 &lt;p&gt;With the ability to create a fake driver and device, a executable kernel pool could communicate with and a user mode process using IOCTLs. In addition, I belive it’s good to understand that not every driver is really tied to a physical file. Another aspect is that a valid driver can create multiple device objects, or that a device object could actually use the driver object of another driver. This could lead to a “hijacking” of driver objects. In any case, I’ve created a PoC for the method above which can be downloaded &lt;a href=&quot;https://github.com/DownWithUp/FakeDriverPoC&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 </description>
-        <pubDate>Fri, 24 Jan 2020 15:51:46 -0800</pubDate>
+        <pubDate>Fri, 24 Jan 2020 18:51:46 -0500</pubDate>
         <link>/blog/post/2020/01/24/post5.html</link>
         <guid isPermaLink="true">/blog/post/2020/01/24/post5.html</guid>
         
@@ -251,7 +251,7 @@ By chance, AdminService.exe (service name AtherosSvc) handles a bunch of custom 
 &lt;p&gt;The other values in the config file have pretty obvious meanings.&lt;/p&gt;
 
 &lt;h2 id=&quot;impact&quot;&gt;Impact&lt;/h2&gt;
-&lt;p&gt;Now that there is a way to create any key, with any data, anywhere, exploiting for elevating privileges is easy. An example would be something like the MSI Server at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\msiserver&lt;/code&gt;. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ImagePath&lt;/code&gt; key could be replaced with something malicious, and the installer can be triggered by running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;msiexec.exe /q /i 'random.msi'&lt;/code&gt;. The only problem is you won’t see GUI elements because of &lt;a href=&quot;http://securityinternals.blogspot.com/2014/02/windows-session-0-isolation.html&quot;&gt;Session 0 Isolation&lt;/a&gt;
+&lt;p&gt;Now that there is a way to create any key, with any data, anywhere, exploiting for elevating privileges is easy. An example would be something like the MSI Server at &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\msiserver&lt;/code&gt;. The &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ImagePath&lt;/code&gt; key could be replaced with something malicious, and the installer can be triggered by running &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;msiexec.exe /q /i &apos;random.msi&apos;&lt;/code&gt;. The only problem is you won’t see GUI elements because of &lt;a href=&quot;http://securityinternals.blogspot.com/2014/02/windows-session-0-isolation.html&quot;&gt;Session 0 Isolation&lt;/a&gt;
 If you need GUI interaction I’d suggest looking at maybe injecting code into a different SYSTEM process but in session 1 (winlogon.exe for example).&lt;/p&gt;
 
 &lt;h2 id=&quot;report-and-response&quot;&gt;Report and Response&lt;/h2&gt;
@@ -262,7 +262,7 @@ The PoC code is available on my github &lt;a href=&quot;https://github.com/DownW
 &lt;p&gt;A few days ago I was looking at my twitter feed when I saw a write-up by &lt;a href=&quot;https://twitter.com/monoxgas&quot;&gt;@monoxgas&lt;/a&gt; on this exact vulnerability. Turns out, he had reported the issue last month, and now that the disclosure was public, published his work in an excellent post which can be found &lt;a href=&quot;https://silentbreaksecurity.com/cve-2019-10617&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 </description>
-        <pubDate>Wed, 16 Oct 2019 16:51:46 -0700</pubDate>
+        <pubDate>Wed, 16 Oct 2019 19:51:46 -0400</pubDate>
         <link>/blog/post/2019/10/16/post4.html</link>
         <guid isPermaLink="true">/blog/post/2019/10/16/post4.html</guid>
         
@@ -291,7 +291,7 @@ The issue is that no checks are preformed on the &lt;code class=&quot;language-p
 The PoC code is available on my github &lt;a href=&quot;https://github.com/DownWithUp/CVE-Stockpile/blob/master/CVE-2019-11868.c&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
 
 </description>
-        <pubDate>Tue, 19 Mar 2019 16:51:46 -0700</pubDate>
+        <pubDate>Tue, 19 Mar 2019 19:51:46 -0400</pubDate>
         <link>/blog/post/2019/03/19/post3.html</link>
         <guid isPermaLink="true">/blog/post/2019/03/19/post3.html</guid>
         
@@ -325,7 +325,7 @@ After you decrypt the response, it will look like &lt;a href=&quot;https://gist.
 &lt;a href=&quot;https://github.com/DownWithUp/Driver-Easy-Research&quot;&gt;Scripts and repository&lt;/a&gt;&lt;/p&gt;
 
 </description>
-        <pubDate>Tue, 18 Dec 2018 15:51:46 -0800</pubDate>
+        <pubDate>Tue, 18 Dec 2018 18:51:46 -0500</pubDate>
         <link>/blog/post/2018/12/18/post2.html</link>
         <guid isPermaLink="true">/blog/post/2018/12/18/post2.html</guid>
         
@@ -337,7 +337,7 @@ After you decrypt the response, it will look like &lt;a href=&quot;https://gist.
       </item>
     
       <item>
-        <title>Spoofing the Windows 10's Task Manager</title>
+        <title>Spoofing the Windows 10&apos;s Task Manager</title>
         <description>&lt;p&gt;Observant Windows 10 users will notice that some of the new metro apps can only run as a single instance. Examples include Settings and Task Manager. Attempting to open another instance of these processes will result in the already opened one being focused.&lt;/p&gt;
 
 &lt;p&gt;I focused on Task Manager. Initially, I began looking for calls to either mutexes or semaphores, which can (if a name argument is passed) be stored in the Windows’s object manager. Calls to create a mutex or semaphore with a name that already exists will return &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ERROR_ALREADY_EXISTS&lt;/code&gt;. In one such instance &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CreateMutexW&lt;/code&gt; used the wide string: &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;Local\\TM.750ce7b0-e5fd-454f-9fad-2f66513dfa1bTerminal&lt;/code&gt; Having another process create a mutex with this same name will result in &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;ERROR_ALREADY_EXISTS&lt;/code&gt; being returned whenever the second process calls &lt;code class=&quot;language-plaintext highlighter-rouge&quot;&gt;CreateMutexW&lt;/code&gt;. The second process, in this case, would be Task Manager&lt;/p&gt;
@@ -350,7 +350,7 @@ In order for this compare to evaluate to true, you need to specify a place in yo
 &lt;p&gt;&lt;img src=&quot;/assets/img/P1-Image1.gif&quot; alt=&quot;GIF1&quot; /&gt;&lt;/p&gt;
 
 </description>
-        <pubDate>Sat, 03 Mar 2018 15:51:46 -0800</pubDate>
+        <pubDate>Sat, 03 Mar 2018 18:51:46 -0500</pubDate>
         <link>/blog/post/2018/03/03/post1.html</link>
         <guid isPermaLink="true">/blog/post/2018/03/03/post1.html</guid>
         
