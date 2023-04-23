@@ -113,4 +113,4 @@ This however, is not a perfect mitigation as at runtime memory which has been ba
 Here is a simplified view of how this whole process will work. The "code" resides within the address space of a signed image.
 ![WB Diagram](/assets/img/P9-Image1.png)
 ## PoC Code
-This [PoC](https://github.com/DownWithUp/) will simply follow the steps above. In summary, this will load a signed DLL as the scratch space, then decrypting, writing code, reencrypting, and finally decrypting again.  
+This [PoC](https://github.com/DownWithUp/WarbirdExamples) will simply follow the steps above. In summary, this will load a signed DLL as the scratch space, then decrypting, writing code, reencrypting, and finally decrypting again.  
