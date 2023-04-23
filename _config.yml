@@ -30,6 +30,7 @@ github_username: DownWithUp
 
 # Build settings
 theme: minima
+
 plugins:
   - jekyll-feed
 

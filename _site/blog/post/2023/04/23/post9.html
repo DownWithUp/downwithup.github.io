@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <meta charset="UTF-8">
+  <title>Example of Windows Warbird Encryption/Decryption</title>
+  <meta name="viewport" content="width=device-width">
+
+  <!--[if lt IE 9]>
+    <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+
+  <link href="/assets/css/style.css" rel="stylesheet" />
+  <link href="/assets/css/colors-dark.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+
+
+  <header id="header">
+    <h1><a href="/"><i></i> DownWithUp's Github Website</a></h1>
+    <p></p>
+  </header>
+
+
+
+  <div id="page">
+
+
+
+    <div id="sidebar">
+      <nav>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="http://twitter.com/DownWithUpSec">Twitter</a></li>
+          <li><a href="/cve_posts/index.html">CVEs</a></li>
+        </ul>
+      </nav>
+    </div>
+
+
+
+    <div id="content">
+      <article class="post">
+
+	
+		<h1><a href="/blog/post/2023/04/23/post9.html">Example of Windows Warbird Encryption/Decryption</a></h1>
+	
+
+	<div class="post-content"><blockquote>
+  <p>Everything in this post was done on a Windows 10 22H2 machine. Kernel version was: 10.0.19041.2486<br /></p>
+</blockquote>
+
+<h2 id="introduction">Introduction</h2>
+<p>Microsoft Warbird is an undocumented encryption technology generally used for things relating to software licensing (DRM) and security mechanisms. There has been some, but not much, previous open source research. Some links which provide further insight:</p>
+<ul>
+  <li>https://github.com/KiFilterFiberContext/warbird-obfuscator</li>
+  <li>https://github.com/KiFilterFiberContext/microsoft-warbird/</li>
+</ul>
+
+<p>In addition, <a href="https://twitter.com/aionescu">Alex Ionescu</a> talked about Warbird in depth during this <a href="https://www.youtube.com/watch?v=gu_i6LYuePg">presentation</a>.</p>
+
+<p>The Warbird technology is appears to be designed to be integrated at compile time, and could function either as an obfuscation approach on the existing code, or as some type of “enclave” block encryptor. This second approach is what this post will dive into.</p>
+
+<h2 id="systemcontrolflowtransition">SystemControlFlowTransition</h2>
+
+<p>There is a semi-undocumented system information class for <code class="language-plaintext highlighter-rouge">NtQuerySystemInformation</code> called <code class="language-plaintext highlighter-rouge">SystemControlFlowTransition</code> (0xB9) which when called ends up in the <code class="language-plaintext highlighter-rouge">WbDispatchOperation</code> function. Placing a breakpoint on this function will show that the <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> process periodically calls this. More on this later. <code class="language-plaintext highlighter-rouge">WbDispatchOperation</code> will branch into several different functions depending on the <code class="language-plaintext highlighter-rouge">operation</code> value passed when calling <code class="language-plaintext highlighter-rouge">NtQuerySystemInformation</code>. The struct looks something like this:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_WB_OPERATION</span>
+<span class="p">{</span>
+	<span class="n">ULONG</span> <span class="n">Operation</span><span class="p">;</span>
+	<span class="n">PVOID</span> <span class="n">Buffer</span><span class="p">;</span>
+    <span class="p">...</span> <span class="p">(</span><span class="n">operation</span> <span class="n">dependent</span> <span class="n">data</span><span class="p">)</span>
+<span class="p">}</span> <span class="n">WB_OPERATION</span><span class="p">,</span> <span class="o">*</span><span class="n">PWB_OPERATION</span><span class="p">;</span></code></pre></figure>
+
+<p>These are the operations:</p>
+<ul>
+  <li>1 = WbDecryptEncryptionSegment</li>
+  <li>2 = WbReEncryptEncryptionSegment</li>
+  <li>3 = WbHeapExecuteCall</li>
+  <li>4 = <em>non symbol name function</em></li>
+  <li>5 = <em>non symbol name function.</em></li>
+  <li>6 = <em>same as case 5</em></li>
+  <li>7 = WbRemoveWarbirdProcess</li>
+  <li>8 = WbProcessStartup</li>
+  <li>9 = WbProcessModuleUnload
+<br />
+Each one of these operations has some type of unique operation dependent data attached to the initial struct. 
+Reversing the <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> can give us hints on how these structures <em>should</em> be formatted and how they are called.
+The decrypt and re-encrypt steps can occur multiple times. The rough pseudocode based on <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> for calling <code class="language-plaintext highlighter-rouge">WbProcessStartup</code> looks like this: <br /></li>
+</ul>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">SystemInfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>                      <span class="c1">// Operation (WbProcessStartup)
+</span>
+<span class="n">SystemInfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="o">&amp;</span><span class="n">buffer</span><span class="p">;</span>
+<span class="n">NtQuerySystemInformation</span><span class="p">(</span><span class="mh">0xB9</span><span class="p">,</span> <span class="n">SystemInfo</span><span class="p">,</span> <span class="mh">0x10</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span></code></pre></figure>
+
+<p>Where <code class="language-plaintext highlighter-rouge">buffer</code>:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="p">{</span>
+    <span class="nl">ULONG:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="nl">ULONG:</span> <span class="mh">0x64</span><span class="p">,</span>
+    <span class="nl">ULONG64:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="nl">ULONG:</span> <span class="mi">0</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>The name <code class="language-plaintext highlighter-rouge">WbProcessStartup</code> seems to suggest that sometype this call does some form of initialization which is required before decrypting/reencrypting data. However, this does not appear to be the case, and the calls to decrypt/reencrypt seem to work without.
+The rough pseudocode based on <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> for calling <code class="language-plaintext highlighter-rouge">WbDecyptEncryptionSegment</code> looks like this:</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="n">SystemInfo</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>                      <span class="c1">// Operation
+</span>
+<span class="n">SystemInfo</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">WarbirdPayload</span><span class="p">;</span>         <span class="c1">// At this point it is encrypted
+</span>
+<span class="n">SystemInfo</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">PEBaseAddress</span><span class="p">;</span>          <span class="c1">// Base Address of the PE
+</span>
+<span class="n">SystemInfo</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0x140000000</span><span class="p">;</span>            <span class="c1">// Image Base
+</span>
+<span class="n">SystemInfo</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="n">UnknownLong64</span><span class="p">;</span>          <span class="c1">// Possibly something relating to encryption        
+</span>
+<span class="n">SystemInfo</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span> <span class="o">=</span> <span class="mh">0x2</span><span class="p">;</span>                    <span class="c1">// Unknown flags
+</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">NtQuerySystemInformation</span><span class="p">(</span><span class="mh">0xB9</span><span class="p">,</span> <span class="n">SystemInfo</span><span class="p">,</span> <span class="mh">0x30u</span><span class="p">,</span> <span class="nb">NULL</span><span class="p">);</span></code></pre></figure>
+
+<p>It’s important to note that the <code class="language-plaintext highlighter-rouge">WarbirdPayload</code> is actually embedded in the <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> binary in a section named <code class="language-plaintext highlighter-rouge">?g_Encry</code>. There are multiple of these sections.</p>
+<h2 id="payload-format">Payload Format</h2>
+<p>For decryption (<code class="language-plaintext highlighter-rouge">WbDecyptEncryptionSegment</code>) the payload is in the format of <code class="language-plaintext highlighter-rouge">WB_PAYLOAD</code> structure.</p>
+
+<figure class="highlight"><pre><code class="language-c" data-lang="c"><span class="k">typedef</span> <span class="k">struct</span> <span class="n">_WB_SEGMENT</span> 
+<span class="p">{</span>
+	<span class="n">ULONG</span> <span class="n">Flags</span><span class="p">;</span>
+	<span class="n">ULONG</span> <span class="n">RVA</span><span class="p">;</span>
+	<span class="n">ULONG</span> <span class="n">Length</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">WB_SEGMENT</span><span class="p">,</span> <span class="o">*</span><span class="n">PWB_SEGMENT</span><span class="p">;</span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">_FEISTEL_ROUND</span>
+<span class="p">{</span>
+	<span class="n">ULONG</span> <span class="n">One</span><span class="p">;</span>
+	<span class="n">ULONG</span> <span class="n">Two</span><span class="p">;</span>
+	<span class="n">ULONG</span> <span class="n">Three</span><span class="p">;</span>
+	<span class="n">ULONG</span> <span class="n">Four</span><span class="p">;</span>
+<span class="p">}</span> <span class="n">FEISTEL_ROUND</span><span class="p">,</span> <span class="o">*</span><span class="n">PFEISTEL_ROUND</span><span class="p">;</span>
+
+<span class="k">typedef</span> <span class="k">struct</span> <span class="n">_WB_PAYLOAD</span> <span class="p">{</span>
+	<span class="n">BYTE</span> <span class="n">Hash</span><span class="p">[</span><span class="mh">0x20</span><span class="p">];</span>        <span class="c1">// SHA 256 hash of the payload sha256(payload size - 0x20)
+</span>
+	<span class="n">ULONG</span> <span class="n">TotalSize</span><span class="p">;</span>		<span class="c1">// Total size (includes all segments)
+</span>
+	<span class="n">ULONG</span> <span class="n">Reserved</span><span class="p">;</span>			<span class="c1">// Set to 0
+</span>
+	<span class="n">ULONG</span> <span class="n">PayloadRVA</span><span class="p">;</span>		<span class="c1">// Offset between start of payload struct and actual start of the data passed (WarbirdPayload) in the NtQuerySystemInformation call
+</span>
+	<span class="n">ULONG</span> <span class="n">SecondStageRVA</span><span class="p">;</span>	<span class="c1">// Offset between start of second stage struct and actual start of the data passed (WarbirdPayload) in the NtQuerySystemInformation call
+</span>
+	<span class="n">ULONG</span> <span class="n">SecondStageSize</span><span class="p">;</span>	<span class="c1">// Size of the UnknownData in DWORDs
+</span>
+	<span class="n">ULONG</span> <span class="n">UnknownLong</span><span class="p">;</span>		<span class="c1">// Looks like this is reserved. Must be 0?
+</span>
+	<span class="n">ULONG64</span> <span class="n">ImageBase</span><span class="p">;</span>		<span class="c1">// PE image base
+</span>
+	<span class="n">BYTE</span> <span class="n">Unknown2</span><span class="p">[</span><span class="mh">0x8</span><span class="p">];</span>		<span class="c1">// Looks like this is reserved. Must be 0?
+</span>
+	<span class="n">ULONG64</span> <span class="n">FeistelKey</span><span class="p">;</span>
+	<span class="n">FEISTEL_ROUND</span> <span class="n">Rounds</span><span class="p">[</span><span class="mi">10</span><span class="p">];</span>
+	<span class="n">ULONG</span> <span class="n">SegmentCount</span><span class="p">;</span>		<span class="c1">// Number of segments
+</span>
+	<span class="n">WB_SEGMENT</span> <span class="n">Segments</span><span class="p">[</span><span class="mi">1</span><span class="p">];</span> <span class="c1">// Segment struct(s)
+</span>
+<span class="p">}</span> <span class="n">WB_PAYLOAD</span><span class="p">,</span> <span class="o">*</span> <span class="n">PWB_PAYLOAD</span><span class="p">;</span></code></pre></figure>
+
+<p>The most important field is the <code class="language-plaintext highlighter-rouge">Segments</code>, an array of <code class="language-plaintext highlighter-rouge">WB_SEGMENT</code> structures. These point (using RVA) to the encrypted blocks of code to be decrypted. The flags field in the <code class="language-plaintext highlighter-rouge">WB_SEGMENT</code> specify what protection the segment should be decrypted as. If any value is present, it is a <code class="language-plaintext highlighter-rouge">PAGE_EXECUTE_READ</code> else it is <code class="language-plaintext highlighter-rouge">PAGE_READONLY</code>.</p>
+<h2 id="how-to-encrypt">How to Encrypt</h2>
+<p>As you may have noticed in the supported operations values, and from the description of the <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> usage, there is no encrypt. This is most likely because this API is intended to be used only after a binary is compiled with the Warbird encrypted chunks. To get around this, you can use the <code class="language-plaintext highlighter-rouge">WbReEncryptEncryptionSegment</code> functionality to first decrypt some random data, replace that data with the bytes we want to encrypt. Then, reencrypt this same memory. If you then save this strucutre (the segment bytes as well as the payload structure) you can then have memory that when restored, can simply be decrypted.</p>
+<h2 id="the-mitigation">The Mitigation</h2>
+<p>Note that <code class="language-plaintext highlighter-rouge">sppsvc.exe</code> is a Windows signed binary. This brings us to a problem. In <a href="https://twitter.com/aionescu">Alex Ionescu’s talk</a> he explained that part of the patch Microsoft made to fix the bug he found was only allow decryption of payloads that were signed by the Windows team at Microsoft. The kernel does this by calling <code class="language-plaintext highlighter-rouge">ZwQueryVirtualMemory</code> with the <code class="language-plaintext highlighter-rouge">MemoryImageInformation</code> class on the memory passed as the payload. Process Hacker’s NT headers have <a href="https://github.com/processhacker/phnt/blob/7c1adb8a7391939dfd684f27a37e31f18d303944/ntmmapi.h#L244">the structure</a> for this undocumented memory class. The <code class="language-plaintext highlighter-rouge">ImageFlags</code> is then compared to ensure the memory was backed with the appropriate signature.</p>
+<h2 id="the-bypass">The Bypass</h2>
+<p>This however, is not a perfect mitigation as at runtime memory which has been backed by a PE with specific signatures can be modified simply by changing the existing virtual memory protections (RX to RW or RWX).</p>
+<h2 id="putting-it-all-together">Putting it all Together</h2>
+<p>Here is a simplified view of how this whole process will work. The “code” resides within the address space of a signed image.
+<img src="/assets/img/P9-Image1.png" alt="WB Diagram" /></p>
+<h2 id="poc-code">PoC Code</h2>
+<p>This <a href="https://github.com/DownWithUp/">PoC</a> will simply follow the steps above. In summary, this will load a signed DLL as the scratch space, then decrypting, writing code, reencrypting, and finally decrypting again.</p>
+</div>
+
+	<p class="meta">Posted on <span class="postdate">Apr 23, 2023</span></p>
+
+</article>
+    </div>
+
+
+
+  </div>
+
+
+
+  <footer id="footer">
+    <p class="copyright">Copyright &copy; 2023 DownWithUp's Github Website. Powered by <a href="http://jekyllrb.com">Jekyll</a>, theme based on Solar theme by <a href="http://jekyllthemes.org/themes/solar/">Matt Harzewski</a></p>
+  </footer>
+
+
+
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
+  <script src="/assets/js/jquery.mobilemenu.min.js"></script>
+
+  <script>
+    $(document).ready(function(){
+      $('#sidebar nav ul').mobileMenu({'topOptionText': 'Menu', 'prependTo': '#sidebar nav'});
+    });
+  </script>
+
+
+
+</body>
+</html>
