@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ if not .IsHome }}{{ .Title }} · {{ end }}{{ site.Title }}</title>
+  <meta name="description" content="{{ .Description | default site.Params.description }}">
+  <link rel="stylesheet" href="{{ "css/main.css" | relURL }}">
+  {{ with .OutputFormats.Get "rss" }}<link rel="alternate" type="application/rss+xml" title="{{ site.Title }}" href="{{ .RelPermalink }}">{{ end }}
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <div class="shell">
+    <header class="site-header">
+      <a class="brand" href="{{ site.Home.RelPermalink }}"><span aria-hidden="true">[&nbsp;]</span> {{ site.Title }}</a>
+      <nav aria-label="Main navigation"><a href="{{ site.Home.RelPermalink }}" {{ if .IsHome }}aria-current="page"{{ end }}>Home</a><a href="{{ "posts/" | relURL }}" {{ if eq .Section "posts" }}aria-current="page"{{ end }}>Posts</a><a href="{{ "cves.html" | relURL }}" {{ if eq .Layout "standalone" }}aria-current="page"{{ end }}>CVEs &amp; Vulnerabilities</a><a href="https://x.com/DownWithUpSec" target="_blank" rel="noopener noreferrer">X (Twitter)</a></nav>
+    </header>
+    <main id="main">{{ block "main" . }}{{ end }}</main>
+    <footer><span>{{ site.Title }}</span><a href="{{ "index.xml" | relURL }}">RSS</a></footer>
+  </div>
+</body>
+</html>

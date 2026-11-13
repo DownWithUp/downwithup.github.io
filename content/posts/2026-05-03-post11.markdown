@@ -1,0 +1,850 @@
+---
+categories: blog post
+date: "2026-05-03T00:00:00Z"
+title: An Example of Vibe Malware Analysis
+---
+
+
+# Introduction
+While talking with a friend he recently mentioned having found a suspicious process running on his server. It was strange because he had gotten high network activity warnings a few days prior and then there was a process named `softirq` eating up almost 100% of the server's CPU. Thankfully he had a copy of the server's state and I was able to get a copy. Turns out there were actually three very suspicious binaries. This presented an interesting opportunity to try something like "vibe reversing" which I've been interested in testing. I used [IDAPro-MCP](https://github.com/mrexodia/ida-pro-mcp) with OpenAI's codex agent using GPT-5.4. While it would be interesting to 100% understand this malware, the real goal of this post is to see how well AI can analyze it. 
+
+## Human Summary
+There were three main binaries that were found to be suspicious:
+* rondo `ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, stripped`
+* bot `ELF 64-bit LSB executable, x86-64, version 1 (GNU/Linux), statically linked, BuildID[sha1]=0b4fdd913a24f4c81000ff42199995dd85477c18, for GNU/Linux 3.2.0, not stripped`
+* softirq `ELF 64-bit LSB executable, x86-64, version 1 (SYSV), statically linked, BuildID[sha1]=7957727edae3fe27250377f345994aa2ba7f5143, stripped`
+
+### Sample: softirq
+The `softirq` binary is the main XMR crypto miner. Instantly I saw crypto related strings:
+```
+cryptonight/0
+cryptonight-monerov7
+cryptonight/msr
+...
+|         GhostRider tuning results         |
+...
+XMRig 6.25.0\n built on Dec 23 2025 with GCC
+```
+This "GhostRider" string can clearly be seen in [xmirgCC](https://github.com/Bendr0id/xmrigCC/blob/648405af69d160dd737e5b2cb1f1bf0800084e42/src/crypto/ghostrider/ghostrider.cpp#L450). The message identifying `XMRig` is obviously from [XMRig](https://github.com/xmrig/xmrig). The date and time stamp is interesting though showing that this was compiled around six months before the discovery date. Looking at the basics of `XMRig` works it became clear that I would need a configuration file in order to see how the miner was actually configured.
+```
+config.json
+.xmrig.json
+.config/xmrig.json
+```
+However, there was not a doubt in my mind that this was malware. The binary name `softirq` is designed to discourage curious users into thinking it's [legitimate](https://www.kernel.org/doc./htmldocs/kernel-hacking/basics-softirqs.html) part of the operating system.
+
+### Sample: bot
+The `bot` binary was not stripped and contained interesting symbol names and tons of hex strings such as "24015a5e7d9290920ec9711ce3c7463242c61405c562de1ac9489bff307336ec". These seem to be used by the function `aes_decrypt_hex_string`. Clearly there is attempt here to obfuscate some strings. I also observed many `HTTP` related functions indicating possible communication over HTTP. 
+
+### Sample: rondo
+The `rondo` binary was a stripped binary containing a very large `main` function. Inside I could see a series of functions which looked as if they decrypted data within the `.data` section. There were no interesting strings except `npxXoudifFeEgGaACSncs[` which appeared to be used in sometype of complex looping function. 
+
+## AI Findings
+After these very brief human reviews I decided to see how AI would handle them. 
+This is the prompt I started with:
+<br>
+*Using the IDA mcp server, analyze the loaded binary file. It is a possbile malware sample. Do not directly run the binary. Look for hints of common malware behaviors and known malware API call patterns.*
+<br>
+Each sample took around 3-8 minutes to process and invoked many IDA MCP tool calls. I then asked to be written to a markdown file repot. Here are the three AI reports:
+<br>
+<hr>
+
+## Sample
+
+- File: `softirq`
+- IDA database: `softirq.i64`
+- Architecture: `x86_64` ELF
+- SHA-256: `96fc528ca5e7d1c2b3add5e31b8797cb126f704976c8fbeaecdbf0aa4309ad46`
+- MD5: `cf127d66124c390ca0f0b42c6385c3c8`
+
+## Scope
+
+This report is based on static analysis performed through the IDA MCP server only. The binary was not executed.
+
+## Assessment
+
+The loaded binary appears to be a statically linked Linux build of **XMRig 6.25.0** rather than a generic unknown loader. The code and strings strongly indicate a Monero cryptominer.
+
+## Findings
+
+### 1. Clear cryptominer identification
+
+Function `sub_458770` at `0x458770` prints version and help text identifying the program as XMRig:
+
+- `XMRig 6.25.0`
+- `Usage: xmrig [OPTIONS]`
+
+Related strings found in the binary include:
+
+- `xmrig`
+- `miner`
+- `wallet_address`
+- `pool_wallet`
+- `stratum+ssl://randomx.xmrig.com:443`
+- `donate.ssl.xmrig.com`
+- `api.xmrig.com`
+
+### 2. Mining pool and job-handling logic
+
+Function `sub_45F860` at `0x45F860` parses fields consistent with Stratum-style mining jobs:
+
+- `job_id`
+- `algo`
+- `blob`
+- `extra_nonce`
+- `pool_wallet`
+- `sig_key`
+
+This behavior matches a Monero miner communicating with mining pools.
+
+### 3. Configuration loading
+
+Function `sub_44AED0` at `0x44AED0` attempts to load configuration from:
+
+- `config.json`
+- `.xmrig.json`
+- `.config/xmrig.json`
+
+This is consistent with standard XMRig configuration handling.
+
+### 4. External command execution capability
+
+Function `sub_9C10C4` at `0x9C10C4` is a wrapper around `/bin/sh -c`.
+
+Function `sub_6018D0` at `0x6018D0` uses that wrapper to execute:
+
+```sh
+/sbin/modprobe msr allow_writes=on > /dev/null 2>&1
+```
+
+This enables MSR access for CPU tuning related to RandomX mining performance. This is a real shell execution path, but it is consistent with miner optimization and not, by itself, evidence of a second-stage payload.
+
+### 5. Host tuning and mining performance logic
+
+The sample contains strings and logic related to:
+
+- RandomX
+- huge pages
+- MSR access
+- `/dev/cpu/{}/msr`
+- `/proc/sys/vm/nr_hugepages`
+- `/sys/module/msr/parameters/allow_writes`
+
+These are common in high-performance CPU cryptominers.
+
+## Malware-Relevant Behavior Summary
+
+The sample demonstrates behavior commonly associated with unauthorized cryptomining:
+
+- Mining pool connectivity
+- Wallet-based mining configuration
+- Background mining support
+- CPU and memory tuning for RandomX
+- Shell-based system configuration for MSR access
+
+If this binary was deployed without user consent, it should be treated as malware based on cryptomining behavior.
+
+## What Was Not Observed
+
+In the areas inspected, I did not find clear evidence of:
+
+- persistence via `cron`, `systemd`, `rc.local`, or SSH key installation
+- anti-debugging checks such as `ptrace`, `TracerPid`, `gdb`, or `strace`
+- anti-VM checks referencing `vmware`, `virtualbox`, or `qemu`
+- a broader RAT or downloader feature set
+
+## Conclusion
+
+This sample is best classified as a **Linux XMRig-based cryptominer**. Based on the static evidence reviewed, it looks more like the miner binary itself than a multifunction backdoor, loader, or RAT.
+
+## Key Functions
+
+- `0x458770` - version/help output, identifies XMRig
+- `0x45F860` - mining job parsing and pool-related handling
+- `0x44AED0` - configuration file loading
+- `0x9C10C4` - `/bin/sh -c` execution wrapper
+- `0x6018D0` - invokes `modprobe msr allow_writes=on`
+
+
+# Malware Analysis Report: `bot`
+
+## Summary
+
+This report documents static analysis of the loaded binary `bot` using IDA MCP tools only. The binary was **not executed**.
+
+The sample appears to be a **Linux bot / DDoS malware** with the following capabilities:
+
+- Anti-VM detection
+- Daemonization and process masquerading
+- Single-instance lock file
+- Encrypted C2 configuration
+- Persistent C2 socket communication
+- Command-driven attack dispatch
+- HTTP, UDP, SYN, ACK, ICMP, and GRE attack modes
+- `/proc`-based process scanning and killing behavior
+
+## Sample Details
+
+- Module: `bot`
+- IDB: `bot.i64`
+- Architecture: 64-bit
+- Image base: `0x400000`
+- MD5: `970d0bd8c1406ee7c2ec0f0c6d0eafac`
+- SHA-256: `6d5d2c56a08ff4c171418b8b24f70a92445604d04bafae3d62743ccb04a13bb0`
+
+## High-Confidence Malicious Behavior
+
+### 1. Anti-analysis / anti-VM
+
+Function: `adbg` at `0x4061b0`
+
+Behavior:
+- Opens `/sys/class/dmi/id/product_name`
+- Reads system product name
+- Checks for substring `VMware`
+- Calls `exit(1)` if VMware is detected
+
+This is a straightforward anti-VM check.
+
+### 2. Stealth and masquerading
+
+Function: `hide` at `0x405fe0`
+
+Behavior:
+- Calls `create_daemon()`
+- Initializes randomization
+- Installs multiple signal handlers
+- Uses `prctl` to rename the process
+- Clears command-line argument strings in memory
+
+Observed disguise targets include legitimate Linux service paths:
+
+- `/usr/lib/packagekit/packagekitd`
+- `/usr/lib/upower/upowerd`
+- `/usr/lib/policykit-1/polkitd`
+- `/usr/lib/fwupd/fwupd`
+- `/usr/lib/boltd/boltd`
+- `/usr/lib/udisks2/udisksd`
+- `/usr/sbin/cron`
+- `/usr/sbin/rsyslogd`
+- `/usr/sbin/sshd`
+- `/usr/sbin/NetworkManager`
+- `/usr/sbin/cupsd`
+- `/usr/bin/dbus-daemon`
+
+### 3. Single-instance lock file
+
+Function: `main` at `0x401b50`
+
+Behavior:
+- Uses `/tmp/.bot_lock`
+- Opens the file and applies `flock`
+- Removes the lock during cleanup
+
+This is consistent with single-instance bot behavior.
+
+### 4. Killer thread
+
+Function: `killer_thread` at `0x402b90`
+
+Behavior:
+- Reads `/proc/self/exe`
+- Parses `/proc/net/tcp`
+- Enumerates `/proc`
+- Inspects process metadata such as:
+  - `/proc/%s/cmdline`
+  - `/proc/%s/exe`
+  - `/proc/%s/fd/`
+  - `/proc/%s/status`
+- References decrypted process and tool names
+
+This is consistent with process-killing or competitor suppression logic.
+
+## Command and Attack Handling
+
+### Communication loop
+
+Function: `handle_communication` at `0x402970`
+
+Behavior:
+- Maintains a socket connection
+- Sends periodic `ping`
+- Receives controller messages with `recv`
+- Uses `poll`
+- Dispatches commands to `handle_command`
+
+### Command parser
+
+Function: `handle_command` at `0x405740`
+
+Recognized commands:
+
+- `ping`
+- `stop`
+- `!udpcustom`
+- `!syn`
+- `!ack`
+- `!http`
+- `!udpplain`
+- `!icmp`
+- `!gre`
+
+Recognized parameter keys:
+
+- `srcport=`
+- `proto=`
+- `psize=`
+- `payload=`
+- `gport=`
+
+The function allocates attack state and starts worker threads via `pthread_create`.
+
+### HTTP flood support
+
+Function: `http_attack` at `0x409be0`
+
+Embedded request templates:
+
+- `GET / HTTP/1.1`
+- `POST / HTTP/1.1`
+- `HEAD / HTTP/1.1`
+
+Embedded user-agent:
+
+- `Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110`
+
+This is consistent with HTTP flood behavior.
+
+## Encrypted Configuration Recovery
+
+### Crypto scheme
+
+Function chain:
+
+- `aes_decrypt_hex_string` at `0x408bd0`
+- `aes_decrypt_string` at `0x408270`
+- `aes128_cbc_decrypt_with_iv` at `0x4080f0`
+
+Observed format:
+
+- The first 32 hex characters are the AES-128 key
+- The ciphertext blob is hex-decoded
+- The first 16 bytes of decoded data are used as the IV
+- Remaining bytes are decrypted as AES-CBC data
+
+Recovered AES key:
+
+- `fd00e82a0a3d86af73deacaa9df16432`
+
+## Recovered C2 and Handshake
+
+### C2 hostname
+
+- Plaintext: `coolcams.duckdns.org`
+- Encrypted blob address: `0x4db048`
+- Used by: `resolve_server_address` at `0x4023a0`
+
+### C2 port
+
+- Plaintext: `54128`
+- Encrypted blob address: `0x4db140`
+- Used by: `main` at `0x401b50`
+
+`main` decrypts this value, parses it with `strtoll`, and stores it into the network socket address as the destination port.
+
+### Handshake / auth token
+
+- Plaintext: `fewgjh48iw3hg5uh`
+- Encrypted blob address: `0x4db0d8`
+- Used by:
+  - `main` at `0x401b50`
+  - `perform_handshake` at `0x4025c0`
+  - `handle_connection_state` at `0x4026a0`
+
+Constructed handshake payload:
+
+- `x86_64 fewgjh48iw3hg5uh`
+
+## Recovered Decrypted Strings
+
+### Tool names and utilities
+
+- `wget`
+- `curl`
+- `tftp`
+- `ftp`
+- `busybox`
+- `sftp`
+- `ftpget`
+- `echo -en`
+- `netstat`
+- `ls`
+- `cat`
+
+### Process names and service targets
+
+- `systemd`
+- `init`
+- `kthreadd`
+- `kworker`
+- `ksoftirqd`
+- `watchdog`
+- `migration`
+- `rcu`
+- `bash`
+- `sh`
+- `sudo`
+
+### Executable and service paths
+
+- `/bin/busybox`
+- `/bin/sh`
+- `/bin/bash`
+- `/usr/bin/bash`
+- `/usr/bin/sh`
+- `/sbin/init`
+- `/usr/sbin/sshd`
+- `/usr/sbin/cron`
+- `/usr/sbin/watchdog`
+- `/usr/sbin/klogd`
+- `/usr/sbin/syslogd`
+- `/usr/sbin/agetty`
+- `/usr/sbin/rsyslogd`
+- `/usr/sbin/ntpd`
+- `/usr/sbin/udevd`
+- `/usr/sbin/acpid`
+- `/usr/sbin/dbus-daemon`
+- `/usr/sbin/NetworkManager`
+
+### Directory and environment-related paths
+
+- `/bin/`
+- `/sbin/`
+- `/usr/`
+- `/lib/`
+- `/dev/null`
+- `/dev/console`
+- `/var/lib/docker`
+- `/data/local/tmp`
+- `/tmp`
+- `/var`
+- `/mnt`
+- `/root`
+- `/boot`
+- `/bin`
+- `/sbin`
+- `/home`
+- `/dev`
+
+These strings are consistent with host profiling, process filtering, and environment-dependent behavior inside `killer_thread`.
+
+## Network Indicators
+
+- C2 hostname: `coolcams.duckdns.org`
+- C2 port: `54128`
+- Handshake string: `x86_64 fewgjh48iw3hg5uh`
+
+## Conclusion
+
+This sample is a high-confidence Linux bot malware specimen. Its behavior strongly indicates:
+
+- C2-based remote control
+- DDoS attack execution
+- Anti-VM evasion
+- Stealth through daemonization and process renaming
+- Process / service suppression via a killer thread
+
+Primary recovered configuration:
+
+- C2: `coolcams.duckdns.org:54128`
+- Handshake: `x86_64 fewgjh48iw3hg5uh`
+
+## Analysis Notes
+
+- All findings were recovered through static analysis only.
+- The malware binary was not executed.
+- Decryption was reproduced by analyzing the malware's AES routines and recovering plaintext configuration data without running the sample itself.
+
+
+# rondo Malware Analysis Report
+
+## Scope
+
+This report documents static analysis findings for the Linux ELF64 binary `rondo` from IDA Pro. The binary was **not executed** during analysis.
+
+## Sample Information
+
+- Name: `rondo`
+- Format: ELF64
+- Architecture: 64-bit Linux
+- Base address: `0x400000`
+- Image size: `0x532928`
+- MD5: `8302915e466e0aba5cc7cfee5b88de5b`
+- SHA256: `7d69ffa881ca2953defe4fb5320c7d007d81713ac22e1dbcf77221fdc4d2c67e`
+
+## Executive Summary
+
+`rondo` is a malicious Linux bot with multiple operational components:
+
+- Anti-debugging and anti-analysis
+- Process and environment inspection via `/proc`
+- Self-relocation and persistence-style behavior
+- Download of architecture-specific payloads
+- Remote shell/system command execution
+- RandomX miner deployment
+- DDoS and packet-flood capabilities
+- Administrative sabotage through renaming of system tools
+
+This is high-confidence Linux malware and should be treated as a compromise artifact.
+
+## High-Level Behavior
+
+### Main Control Flow
+
+The primary controller is `sub_40E620`. It performs the following:
+
+- Verifies execution context and process naming
+- Decodes embedded strings through a custom obfuscation routine
+- Redirects output to `/dev/null`
+- Writes `-1000` to `/proc/self/oom_score_adj`
+- Performs anti-debug and anti-kernel-debug checks
+- Searches writable paths and relocates/renames itself using `softirq`-themed names
+- Downloads architecture-specific payloads
+- Builds and launches a miner command
+- Enters a long-lived C2 command loop
+
+### Anti-Debugging and Anti-Analysis
+
+`sub_401D90` reads `/proc/<pid>/status` and inspects `TracerPid`. If tracing is detected, it kills either itself or the tracer-related process.
+
+`sub_402A20` checks the following for kernel debugging indicators:
+
+- `/sys/module/kgdboc/parameters/kgdboc`
+- `/proc/cmdline`
+- `/etc/default/grub`
+- `/proc/modules`
+
+Relevant markers:
+
+- `kgdboc=`
+- `kgdboc `
+- `TracerPid`
+
+### Shell Execution
+
+`sub_4168C8` forks and executes `/bin/sh` with provided content, waits for child completion, and returns the child status.
+
+Related execution helpers embedded in the sample:
+
+- `/bin/sh`
+- `bash -i`
+- `sh -i`
+- `python -c`
+- `python3 -c`
+- `/dev/tcp/`
+- `base64 -d`
+
+### Downloader Behavior
+
+`sub_401430` performs HTTP retrieval and validates:
+
+- `HTTP/1.1 200`
+- `HTTP/1.0 200`
+
+It uses request templates including:
+
+```text
+GET %s HTTP/1.1
+Host: %s
+Connection: close
+User-Agent: rondo
+```
+
+It can also enforce ELF magic checking on downloaded content before writing the file.
+
+### Miner Deployment
+
+Embedded miner command:
+
+```text
+%s --randomx-1gb-pages -o 45.125.66.100:444 -u %s -p 3cthDeQ5 --tls -o 45.94.31.89:443 -u %s -p 3cthDeQ5 --tls -B
+```
+
+This strongly indicates RandomX/XMRig-style mining functionality.
+
+### Administrative Sabotage
+
+The sample renames defensive and administrative tools across common executable paths:
+
+- `/sbin`
+- `/usr/sbin`
+- `/bin`
+- `/usr/bin`
+- `/usr/local/bin`
+- `/usr/local/sbin`
+
+Observed renames:
+
+- `iptables -> dwsbme`
+- `ufw -> nqqbsc`
+- `shutdown -> hhrqwk`
+- `poweroff -> dcwkkb`
+- `halt -> cjtzgw`
+- `reboot -> gaajct`
+- `passwd -> ahwdze`
+- `chpasswd -> ereghx`
+- `chattr -> qkpucq`
+
+This behavior is intended to hinder remediation and local administration.
+
+## Decoded Strings and Embedded Artifacts
+
+### Paths and Files
+
+- `/rondo`
+- `/softirq`
+- `/softirq.x86_64`
+- `/softirq.i686`
+- `/softirq.aarch64`
+- `/lib/systemd/%s`
+- `/lib/systemd`
+- `.persisted`
+- `/tmp`
+- `/tmp/`
+- `/var/`
+- `/data/local/tmp/`
+- `/dev/`
+- `/proc/`
+- `/proc/%d/maps`
+- `/proc/%d/exe`
+- `/proc/%d/root`
+- `/proc/%s/exe`
+- `/proc/self/oom_score_adj`
+- `/dev/null`
+- `[heap]`
+
+### Network and HTTP Markers
+
+- `45.92.1.50`
+- `45.125.66.100:444`
+- `45.94.31.89:443`
+- `api.ipify.org`
+- `104.26.12.205`
+- `Server: rondo`
+- `User-Agent: rondo`
+
+HTTP templates:
+
+```text
+GET %s HTTP/1.1
+Host: %s
+Connection: close
+User-Agent: rondo
+
+GET / HTTP/1.1
+Host: %s
+Connection: close
+```
+
+### Runtime/Utility Strings
+
+- `unknown`
+- `softirq`
+- `performance`
+- `check`
+- `ack`
+- `arg1`
+
+## Indicators of Compromise
+
+### File and Path IOCs
+
+- `/softirq`
+- `/softirq.x86_64`
+- `/softirq.i686`
+- `/softirq.aarch64`
+- `.persisted`
+- `/lib/systemd/%s`
+- `/proc/self/oom_score_adj`
+
+### Network IOCs
+
+- `45.92.1.50`
+- `45.125.66.100:444`
+- `45.94.31.89:443`
+- `api.ipify.org`
+- `104.26.12.205`
+
+### Miner IOC
+
+- Wallet/password component: `3cthDeQ5`
+
+### Protocol and Header IOCs
+
+- `User-Agent: rondo`
+- `Server: rondo`
+- `HTTP/1.1 200`
+- `HTTP/1.0 200`
+
+## Remote Command Set
+
+The large command dispatcher is `sub_40B300`. It contains the following top-level command strings:
+
+- `.exit`
+- `.sys`
+- `.kill`
+- `.udp`
+- `.sudp`
+- `.syn`
+- `.handshake`
+- `.psh`
+- `.tcplegit`
+- `.http`
+- `.tcp`
+- `.udpraw`
+- `.spoof`
+- `.icmp`
+- `.raw`
+- `.stop`
+
+### Control / Session Behavior
+
+The dispatcher also uses:
+
+- `check`
+- `ack`
+
+These appear to support C2 liveness or control synchronization.
+
+### Likely Command Semantics
+
+- `.stop`: terminates tracked worker processes
+- `.kill`: targeted kill behavior using parsed identifiers or PIDs
+- `.sys`: local system command execution via shell helper paths
+- `.exit`: controlled session termination
+- Attack-method commands: spawn/fork workers, parse arguments, and store child PIDs in global tracking arrays around `0x5211C0`
+
+## Attack Profiles and Protocol Labels
+
+The packet/profile selector at `sub_408B80` and related callers reference the following profile names:
+
+- `rdns`
+- `dns`
+- `valve`
+- `roblox`
+- `wireguard`
+- `openvpn`
+- `openvpnauth`
+- `openvpncrypt`
+- `openvpntcp`
+- `openvpnauthtcp`
+- `openvpncrypttcp`
+- `fortnite`
+- `dayz`
+- `fivem`
+- `raknet`
+- `mcrealm`
+- `darkanddarker`
+- `discord`
+- `discord2`
+- `stun`
+- `rtc`
+- `dtls`
+- `samp`
+- `ssh`
+- `mcjava`
+- `raw`
+- `cs2`
+- `csgo`
+
+These are consistent with application-aware DDoS packet templates and traffic generators.
+
+## Function Map
+
+### Core Functions
+
+- `sub_40E620`
+  - Main controller
+  - Anti-analysis, process cleanup, relocation, miner setup, startup logic, C2 entry
+
+- `sub_40B300`
+  - Main remote command dispatcher
+  - Handles DDoS methods and control commands
+
+- `sub_403170`
+  - Local/system command dispatcher
+  - References shell, `python`, `python3`, `bash`, `sh`, `base64 -d`, and `/dev/tcp/`
+
+### Analysis/Evasion Functions
+
+- `sub_401D90`
+  - Anti-debugging via `/proc/<pid>/status`
+  - Detects `TracerPid`
+
+- `sub_402A20`
+  - Anti-kgdb / anti-kernel-debug checks
+
+- `sub_4028E0`
+  - Sets CPU scaling governor to `performance`
+
+### String and Utility Functions
+
+- `sub_402530`
+  - Custom in-place string decoder used throughout the binary
+
+- `sub_4168C8`
+  - Fork + `/bin/sh` execution helper
+
+### Networking / Payload Functions
+
+- `sub_401430`
+  - HTTP downloader
+  - Validates HTTP 200 and optional ELF magic
+
+- `sub_408B80`
+  - Packet/profile selector used by attack builder functions
+
+- `sub_402060`
+  - Raw packet / DNS-style builder
+
+- `sub_4049B0`
+  - Attack worker implementation
+
+- `sub_4064C0`
+  - Attack worker implementation
+
+- `sub_4069D0`
+  - Attack worker implementation
+
+## Static Assessment
+
+This sample is consistent with a Linux botnet payload combining:
+
+- DDoS operations
+- Mining operations
+- Remote command execution
+- Host tampering
+- Persistence-related relocation
+- Anti-analysis controls
+
+Confidence is high that `rondo` is malicious and operationally capable.
+
+## Recommended Handling
+
+- Treat the sample as malware
+- Do not execute outside a tightly controlled detonation environment
+- Hunt for the listed file names, IPs, domains, and HTTP markers
+- Check Linux hosts for renamed administrative tools and `softirq`-named payloads
+- Inspect `/lib/systemd`, `/tmp`, `/var`, `/dev`, and runtime mount points for dropped components
+- Review process histories and network egress for connections to the listed infrastructure
+
+<hr>
+
+# Conclusion
+* The reports were all formatted a little differently. 
+* They contained way more detail than I expected.
+* Handled string decryption very well.
+
+Using the IDA MCP along with an AI agent was a relatively easy and simple process. I was interested when the agent pointed out the possibility of arbitrary execution in `softirq` via `/bin/sh -c` but manually confirmed it was only for using `modprobe msr`. I also visited `coolcams.duckdns.org` and it was still online.
+![File server](/assets/img/P11-Image1.png)
+Regardless, it was a good expiriment and I'm impressed with how well the AI agent worked with the IDA aswell as the quality of the reports it generated. 

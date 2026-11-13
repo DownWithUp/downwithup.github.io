@@ -1,0 +1,7 @@
+{{ define "main" }}
+<a class="back" href="{{ "posts/" | relURL }}">← All posts</a>
+<article>
+  <header class="post-header"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02 January 2006" }} · {{ .ReadingTime }} min read</time><h1>{{ .Title }}</h1><p>{{ .Description }}</p></header>
+  <div class="prose">{{ .Content }}</div>
+</article>
+{{ end }}

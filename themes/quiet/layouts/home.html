@@ -1,0 +1,14 @@
+{{ define "main" }}
+<section class="intro">
+  <p class="eyebrow">Reverse engineering & Security Research</p>
+  <h1>{{ .Title }}<span class="dot">.</span></h1>
+  <div class="prose">{{ .Content }}</div>
+  <a class="read-link" href="{{ "posts/" | relURL }}">Browse the notebook <span aria-hidden="true">↗</span></a>
+</section>
+<section class="latest" aria-labelledby="latest-title">
+  <div class="section-heading"><h2 id="latest-title">Latest entries</h2><span class="eyebrow">01—03</span></div>
+  {{ range first 3 (where site.RegularPages "Section" "posts").ByDate.Reverse }}
+  <div class="entry"><time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "02 Jan 2006" }}</time><a href="{{ .RelPermalink }}">{{ .Title }}</a></div>
+  {{ end }}
+</section>
+{{ end }}
