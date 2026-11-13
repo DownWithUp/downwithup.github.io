@@ -8,6 +8,18 @@ A collection of my vulnerability research and published disclosures.
 ## CVEs
 <hr>
 
+### CVE-2021-1892
+***Qualcomm WLAN Driver Privilege Escalation***<br>
+The Qcamain10x64.sys WLAN driver uses the insecure "UserBuffer" member of the IRP allowing attackers to specify arbitrary addresses for usermode buffers.
+* Security Risk Level: CVSS (v3.0) = 7.2 High
+* Possible Solution(s) / Fixe(s): 
+    * Use buffered IO
+
+* Exploit Code / Vulnerable Software Source(s) [In Stockpile]: [Private]
+* Reported to Qualcomm 
+* https://docs.qualcomm.com/securitybulletin/april-2021-bulletin.html
+<hr>
+
 ### CVE-2020-9540
 ***Sophos HitmanPro.Alert's 3.7.12 service insecure downloads***<br>
 HitmanPro.Alert, versions 3.7.12 and earlier, download files over http as a normal user, then are run as SYSTEM. The connection is proxyable.
@@ -69,6 +81,7 @@ AdminService.exe, included in the driver installer package for Qualcomm Atheros 
     * Do not read input files containing sensitive configuration information from low privileged write locations. 
 * Exploit Code / Vulnerable Software Source(s) [In Stockpile]: [Here](https://github.com/DownWithUp/CVE-Stockpile)
 Reported to Qualcomm's PSIRT and coordinated public disclosure. Unknown if newer versions are still affected. 
+https://docs.qualcomm.com/securitybulletin/october-2019-bulletin.html
 <hr>
 
 ### CVE-2019-11868
